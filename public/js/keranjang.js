@@ -1,7 +1,7 @@
 // Keranjang belanja, riwayat penelusuran, dan "Beli sekarang".
 // Semua disimpan di localStorage supaya tetap ada walau halaman dimuat ulang.
 
-import { $, el, formatRupiah, hargaSetelahDiskon, salinDalam, setelahFrame, tampilkanToast } from './util.js';
+import { $, el, formatRupiah, hargaSetelahDiskon, setelahFrame, tampilkanToast } from './util.js';
 
 const KUNCI_KERANJANG = 'tk_keranjang';
 const KUNCI_RIWAYAT = 'tk_riwayat';
@@ -129,24 +129,43 @@ export function tambahKeKeranjang(produk, tombol) {
   });
 }
 
+// id produk yang pesanannya sedang dikirim; klik berikutnya untuk produk yang sama diabaikan
+const sedangDipesan = new Set();
+
 export async function beliSekarang(produk, tombol) {
-  const konfig = salinDalam(KONFIG);
-  const riwayat = ambilRiwayat();
-  riwayat.push({ t: Date.now(), jenis: 'beli', id: produk.id, nama: produk.nama, kategori: produk.kategori, harga: produk.harga });
-  window.Lacak.kirim('begin_checkout', { produk, riwayat, sumber: konfig.sumber });
-  simpanRiwayatNanti();
+  if (sedangDipesan.has(produk.id)) return;
+  sedangDipesan.add(produk.id);
 
-  const respons = await fetch('/api/pesanan', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ produkId: produk.id, nama: produk.nama }),
+  // aria-disabled, bukan disabled: tombol tetap memegang fokus keyboard selama pesanan diproses
+  tombol.setAttribute('aria-disabled', 'true');
+  tombol.setAttribute('aria-busy', 'true');
+  tombol.textContent = 'Memproses pesanan';
+
+  setelahFrame(() => {
+    catatRiwayat({ t: Date.now(), jenis: 'beli', id: produk.id, nama: produk.nama, kategori: produk.kategori, harga: produk.harga });
+    window.Lacak.kirim('begin_checkout', { produkId: produk.id, nama: produk.nama, harga: hargaSetelahDiskon(produk), sumber: KONFIG.sumber });
   });
-  const pesanan = await respons.json();
 
-  tombol.textContent = 'Dipesan ✓';
-  setTimeout(() => { tombol.textContent = 'Beli sekarang'; }, 1500);
-  tampilkanToast('Pesanan ' + pesanan.id + ' dibuat: ' + produk.nama);
-  perbaruiLencanaPesanan();
+  try {
+    const respons = await fetch('/api/pesanan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ produkId: produk.id, nama: produk.nama }),
+    });
+    if (!respons.ok) throw new Error('status ' + respons.status);
+    const pesanan = await respons.json();
+    tombol.textContent = 'Dipesan ✓';
+    setTimeout(() => { tombol.textContent = 'Beli sekarang'; }, 1500);
+    tampilkanToast('Pesanan ' + pesanan.id + ' dibuat: ' + produk.nama);
+    perbaruiLencanaPesanan();
+  } catch {
+    tombol.textContent = 'Beli sekarang';
+    tampilkanToast('Pesanan belum terkirim karena koneksi bermasalah. Tekan "Beli sekarang" untuk mencoba lagi.');
+  } finally {
+    sedangDipesan.delete(produk.id);
+    tombol.removeAttribute('aria-disabled');
+    tombol.removeAttribute('aria-busy');
+  }
 }
 
 export async function perbaruiLencanaPesanan() {
