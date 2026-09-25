@@ -9,13 +9,15 @@ export function el(tag, kelas, teks) {
   return node;
 }
 
+// Satu pemformat untuk seluruh halaman: membangun Intl.NumberFormat jauh lebih mahal daripada memakainya.
+const pemformatRupiah = new Intl.NumberFormat('id-ID', {
+  style: 'currency',
+  currency: 'IDR',
+  maximumFractionDigits: 0,
+});
+
 export function formatRupiah(angka) {
-  const pemformat = new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  });
-  return pemformat.format(angka);
+  return pemformatRupiah.format(angka);
 }
 
 export function formatRibuan(angka) {
