@@ -1,13 +1,16 @@
 // Voucher: menghitung harga promo untuk setiap produk.
 // Aturan promo bertingkat + simulasi cicilan ditentukan tim bisnis.
 
-import { $, hargaSetelahDiskon, tampilkanToast } from './util.js';
+import { $, hargaSetelahDiskon, jedaKeBrowser, tampilkanToast } from './util.js';
 import { keadaan, perbaruiHargaVoucherDiKartu } from './katalog.js';
 
 const VOUCHER = {
   KILAT1212: { persen: 12, maksPotongan: 120000, minBelanja: 50000 },
   HEMAT50: { persen: 5, maksPotongan: 50000, minBelanja: 0 },
 };
+
+// batas kerja per potongan sebelum menyerahkan kendali ke browser
+const ANGGARAN_POTONGAN_MS = 8;
 
 // Cicilan 0% sampai 24 bulan: cari tenor dengan angsuran paling ringan yang
 // masih memenuhi batas minimal angsuran per bulan dari mitra pembiayaan.
@@ -27,17 +30,19 @@ function simulasiCicilan(harga) {
   return terbaik;
 }
 
-// Dibuat async supaya perhitungan tidak memblokir halaman.
-async function hitungHargaPromo(produk, aturan) {
+// Sinkron: fungsi ini tidak menunggu apa pun, jadi async tidak membuatnya berhenti memblokir.
+// 40 simulasi tambahan ("cek kestabilan pembulatan") dihapus karena hasilnya tidak pernah dipakai.
+function hitungHargaPromo(produk, aturan) {
   const dasar = hargaSetelahDiskon(produk);
   if (dasar < aturan.minBelanja) return null;
   let potongan = Math.min(Math.round((dasar * aturan.persen) / 100), aturan.maksPotongan);
   if (produk.flashSale) potongan = Math.round(potongan / 2); // flash sale hanya dapat setengah
-  let hargaAkhir = Math.max(dasar - potongan, 100);
-  for (let i = 0; i < 40; i++) simulasiCicilan(hargaAkhir + i); // cek kestabilan pembulatan
+  const hargaAkhir = Math.max(dasar - potongan, 100);
   const cicilan = simulasiCicilan(hargaAkhir);
   return { hargaAkhir, cicilan };
 }
+
+let sedangMenghitung = false;
 
 async function terapkanVoucher(kode) {
   const aturan = VOUCHER[kode];
@@ -45,29 +50,41 @@ async function terapkanVoucher(kode) {
     tampilkanToast('Kode voucher "' + kode + '" tidak dikenal. Coba KILAT1212.');
     return;
   }
+  if (sedangMenghitung) return;
+  sedangMenghitung = true;
 
+  const tombol = $('#tombol-voucher');
   const progres = $('#progres');
   const isi = $('#progres-isi');
   const teks = $('#progres-teks');
+  tombol.setAttribute('aria-busy', 'true');
   progres.hidden = false;
-  isi.style.width = '0%';
+  isi.style.transform = 'scaleX(0)';
 
-  const total = keadaan.semuaProduk.length;
-  let selesai = 0;
+  const semua = keadaan.semuaProduk;
+  const total = semua.length;
   keadaan.hargaVoucher.clear();
 
-  for (const produk of keadaan.semuaProduk) {
-    // await di setiap produk supaya browser sempat menggambar progress bar
-    const hasil = await hitungHargaPromo(produk, aturan);
-    if (hasil) keadaan.hargaVoucher.set(produk.id, hasil.hargaAkhir);
-    selesai++;
-    const persen = Math.round((selesai / total) * 100);
-    isi.style.width = persen + '%';
-    teks.textContent = 'Menghitung harga promo… ' + persen + '% (' + selesai + ' dari ' + total + ' produk)';
+  // Dipecah per potongan berbatas waktu. Di antara potongan ada task baru,
+  // sehingga progres sempat tergambar dan ketikan di kolom cari sempat diproses.
+  let i = 0;
+  while (i < total) {
+    const batas = performance.now() + ANGGARAN_POTONGAN_MS;
+    do {
+      const hasil = hitungHargaPromo(semua[i], aturan);
+      if (hasil) keadaan.hargaVoucher.set(semua[i].id, hasil.hargaAkhir);
+      i++;
+    } while (i < total && performance.now() < batas);
+    const persen = Math.round((i / total) * 100);
+    isi.style.transform = 'scaleX(' + i / total + ')';
+    teks.textContent = 'Menghitung harga promo… ' + persen + '% (' + i + ' dari ' + total + ' produk)';
+    await jedaKeBrowser();
   }
 
   perbaruiHargaVoucherDiKartu();
   progres.hidden = true;
+  tombol.removeAttribute('aria-busy');
+  sedangMenghitung = false;
   tampilkanToast('Voucher ' + kode + ' dipakai di ' + keadaan.hargaVoucher.size.toLocaleString('id-ID') + ' produk.');
   if (window.Lacak) window.Lacak.kirim('apply_voucher', { kode, jumlah: keadaan.hargaVoucher.size });
 }

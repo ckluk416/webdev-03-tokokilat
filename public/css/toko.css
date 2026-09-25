@@ -66,7 +66,7 @@ button { cursor: pointer; }
 .progres { background: var(--putih); border: 1.5px solid var(--garis); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
 .progres-teks { font-weight: 600; margin-bottom: 8px; }
 .progres-jalur { height: 10px; background: var(--kabut); border-radius: 99px; overflow: hidden; }
-.progres-isi { height: 100%; width: 0; background: var(--hijau); }
+.progres-isi { height: 100%; background: var(--hijau); transform: scaleX(0); transform-origin: left; }
 
 .ringkasan { margin: 0 0 12px; color: var(--abu); }
 
