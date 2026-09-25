@@ -181,10 +181,19 @@ export function pasangKeranjang() {
   const buka = (ya) => {
     panel.hidden = !ya;
     tombolBuka.setAttribute('aria-expanded', String(ya));
-    if (ya) gambarPanel();
+    // fokus ikut pindah ke panel dan kembali ke tombol pembuka, supaya pengguna keyboard tidak tertinggal di belakang panel
+    if (ya) {
+      gambarPanel();
+      $('#tutup-keranjang').focus();
+    } else {
+      tombolBuka.focus();
+    }
   };
   tombolBuka.addEventListener('click', () => buka(panel.hidden));
   $('#tutup-keranjang').addEventListener('click', () => buka(false));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !panel.hidden) buka(false);
+  });
   $('#kosongkan-keranjang').addEventListener('click', () => {
     simpanKeranjang([]);
     perbaruiLencana();
