@@ -65,5 +65,9 @@ export function pasangGulir() {
   // Pull to refresh tak sengaja di Android dicegah dengan overscroll-behavior di CSS, bukan dengan
   // listener touchmove non-passive yang membuat compositor menunggu main thread di setiap guliran.
 
-  $('#ke-atas').addEventListener('click', () => window.scrollTo({ top: 0 }));
+  // tombol ini disembunyikan begitu halaman kembali ke atas; fokus dipindah ke logo supaya tidak hilang ke body
+  $('#ke-atas').addEventListener('click', () => {
+    window.scrollTo({ top: 0 });
+    $('.merek-toko').focus({ preventScroll: true });
+  });
 }
