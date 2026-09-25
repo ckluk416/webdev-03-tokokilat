@@ -1,6 +1,6 @@
 // Pencarian, saringan kategori, dan pengurutan.
 
-import { $, el, hargaSetelahDiskon, setelahFrame } from './util.js';
+import { $, el, hargaSetelahDiskon } from './util.js';
 import { keadaan, renderProduk } from './katalog.js';
 
 const saringan = { kata: '', kategori: 'Semua', urut: 'relevan' };
@@ -35,6 +35,8 @@ const PEMBANDING = {
 };
 
 let kunciTerkirim = '';
+let pengaturWaktuAnalitik;
+const KATA_STABIL_MS = 1000;
 
 export function terapkanSaringan() {
   const kunci = normalkan(saringan.kata);
@@ -46,12 +48,16 @@ export function terapkanSaringan() {
   if (PEMBANDING[saringan.urut]) hasil = hasil.slice().sort(PEMBANDING[saringan.urut]);
   renderProduk(hasil);
 
-  // satu event per kata kunci yang sudah stabil, dikirim setelah hasil tergambar
+  // Satu event per kata kunci yang tidak berubah selama 1 detik. Render cukup menunggu jeda ketik 150 ms,
+  // tetapi tiap panggilan SDK di ponsel lambat mendekati 100 ms, jadi analitik menunggu lebih lama.
+  clearTimeout(pengaturWaktuAnalitik);
   if (window.Lacak && kunci && kunci !== kunciTerkirim) {
-    kunciTerkirim = kunci;
     const kata = saringan.kata;
     const jumlah = hasil.length;
-    setelahFrame(() => window.Lacak.kirim('search', { kata, jumlah }));
+    pengaturWaktuAnalitik = setTimeout(() => {
+      kunciTerkirim = kunci;
+      window.Lacak.kirim('search', { kata, jumlah });
+    }, KATA_STABIL_MS);
   }
 }
 

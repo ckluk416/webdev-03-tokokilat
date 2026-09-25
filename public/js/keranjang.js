@@ -119,13 +119,14 @@ export function tambahKeKeranjang(produk, tombol) {
   }, 1500);
   tampilkanToast('Ditambahkan ke keranjang: ' + produk.nama);
 
+  // riwayat dan SDK di task terpisah: di ponsel lambat masing-masing sudah puluhan milidetik
   setelahFrame(() => {
     catatRiwayat({ t: Date.now(), jenis: 'keranjang', id: produk.id, nama: produk.nama, kategori: produk.kategori, harga: produk.harga });
     // SDK meng-hash seluruh payload; riwayat 1,2 MB tidak ikut dikirim, cukup ringkasan keranjang.
-    window.Lacak.kirim('add_to_cart', {
+    setTimeout(() => window.Lacak.kirim('add_to_cart', {
       produkId: produk.id, nama: produk.nama, harga: item.harga, jumlah: item.jumlah,
       totalItemKeranjang: jumlahItem(keranjang), sumber: KONFIG.sumber,
-    });
+    }), 0);
   });
 }
 
@@ -143,7 +144,7 @@ export async function beliSekarang(produk, tombol) {
 
   setelahFrame(() => {
     catatRiwayat({ t: Date.now(), jenis: 'beli', id: produk.id, nama: produk.nama, kategori: produk.kategori, harga: produk.harga });
-    window.Lacak.kirim('begin_checkout', { produkId: produk.id, nama: produk.nama, harga: hargaSetelahDiskon(produk), sumber: KONFIG.sumber });
+    setTimeout(() => window.Lacak.kirim('begin_checkout', { produkId: produk.id, nama: produk.nama, harga: hargaSetelahDiskon(produk), sumber: KONFIG.sumber }), 0);
   });
 
   try {
@@ -215,4 +216,6 @@ export function pasangKeranjang() {
 
   perbaruiLencana();
   perbaruiLencanaPesanan();
+  // riwayat (sekitar 1,2 MB) di-parse saat browser idle, bukan saat pengguna menekan tombol pertama kali
+  if ('requestIdleCallback' in window) requestIdleCallback(() => ambilRiwayat(), { timeout: 3000 });
 }
