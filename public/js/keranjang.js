@@ -155,13 +155,19 @@ export async function beliSekarang(produk, tombol) {
     if (!respons.ok) throw new Error('status ' + respons.status);
     const pesanan = await respons.json();
     tombol.textContent = 'Dipesan ✓';
-    setTimeout(() => { tombol.textContent = 'Beli sekarang'; }, 1500);
+    tombol.removeAttribute('aria-busy');
     tampilkanToast('Pesanan ' + pesanan.id + ' dibuat: ' + produk.nama);
     perbaruiLencanaPesanan();
+    // penjaga tetap aktif selama tanda "Dipesan ✓" tampil: ketukan beruntun yang datang tepat setelah
+    // pesanan pertama selesai tidak ikut menjadi pesanan kedua
+    setTimeout(() => lepaskan('Beli sekarang'), 1500);
   } catch {
-    tombol.textContent = 'Beli sekarang';
     tampilkanToast('Pesanan belum terkirim karena koneksi bermasalah. Tekan "Beli sekarang" untuk mencoba lagi.');
-  } finally {
+    lepaskan('Beli sekarang');
+  }
+
+  function lepaskan(teks) {
+    tombol.textContent = teks;
     sedangDipesan.delete(produk.id);
     tombol.removeAttribute('aria-disabled');
     tombol.removeAttribute('aria-busy');
