@@ -79,6 +79,10 @@ button { cursor: pointer; }
 .promo-banner h2 { margin: 0 0 4px; font: italic 900 22px/1.1 var(--huruf-tegas); }
 .promo-banner p { margin: 0; max-width: 60ch; }
 .promo-memuat { opacity: .85; }
+/* tinggi yang dicadangkan mengikuti tinggi banner terisi di tiap lebar (diukur di Chrome 153), supaya isi yang datang belakangan tidak menggeser kisi */
+@media (max-width: 1000px) { .promo-banner { min-height: 178px; } }
+@media (max-width: 720px) { .promo-banner { min-height: 202px; } }
+@media (max-width: 411px) { .promo-banner { min-height: 248px; } }
 .promo-banner button { border: 0; border-radius: 8px; padding: 12px 18px; background: var(--kilat); color: var(--tinta); font-weight: 800; }
 
 /* ---------- kisi produk ---------- */
