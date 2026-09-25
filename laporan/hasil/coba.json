@@ -1,0 +1,152 @@
+{
+  "label": "coba",
+  "waktu": "2026-09-25T09:03:14.214Z",
+  "chrome": "Chrome/153.0.8010.53",
+  "cpu": "AMD Ryzen 5 7535HS with Radeon Graphics",
+  "inti": 12,
+  "ramGB": 23,
+  "throttlingCPU": "1x",
+  "viewport": "412x915",
+  "ulang": 3,
+  "skenario": {
+    "S3": {
+      "median": {
+        "inp": 296,
+        "jumlahInteraksi": 3,
+        "longTaskTerlama": 150,
+        "jumlahLongTask": 34,
+        "totalBlokir": 1597,
+        "frameLambat": 32,
+        "frameTerburuk": 313,
+        "cls": 0,
+        "taskMs": 6962,
+        "skripMs": 837,
+        "layoutMs": 1234,
+        "gayaMs": 123,
+        "jumlahLayout": 156,
+        "durasiDtk": 5.5,
+        "jumlahPesanan": 3
+      },
+      "putaran": [
+        {
+          "inp": 296,
+          "jumlahInteraksi": 3,
+          "longTaskTerlama": 150,
+          "jumlahLongTask": 34,
+          "totalBlokir": 1597,
+          "frameLambat": 32,
+          "frameTerburuk": 313,
+          "cls": 0,
+          "taskMs": 7126,
+          "skripMs": 858,
+          "layoutMs": 1234,
+          "gayaMs": 121,
+          "jumlahLayout": 163,
+          "durasiDtk": 5.5,
+          "jumlahPesanan": 3
+        },
+        {
+          "inp": 272,
+          "jumlahInteraksi": 3,
+          "longTaskTerlama": 139,
+          "jumlahLongTask": 31,
+          "totalBlokir": 1473,
+          "frameLambat": 31,
+          "frameTerburuk": 236,
+          "cls": 0,
+          "taskMs": 6916,
+          "skripMs": 837,
+          "layoutMs": 1264,
+          "gayaMs": 126,
+          "jumlahLayout": 156,
+          "durasiDtk": 5.5,
+          "jumlahPesanan": 3
+        },
+        {
+          "inp": 296,
+          "jumlahInteraksi": 3,
+          "longTaskTerlama": 152,
+          "jumlahLongTask": 34,
+          "totalBlokir": 1629,
+          "frameLambat": 32,
+          "frameTerburuk": 347,
+          "cls": 0,
+          "taskMs": 6962,
+          "skripMs": 811,
+          "layoutMs": 1219,
+          "gayaMs": 123,
+          "jumlahLayout": 155,
+          "durasiDtk": 5.5,
+          "jumlahPesanan": 3
+        }
+      ]
+    },
+    "S6": {
+      "median": {
+        "jumlahInteraksi": 0,
+        "longTaskTerlama": 143,
+        "jumlahLongTask": 60,
+        "totalBlokir": 2630,
+        "frameLambat": 60,
+        "frameTerburuk": 243,
+        "cls": 0,
+        "taskMs": 11506,
+        "skripMs": 1100,
+        "layoutMs": 2842,
+        "gayaMs": 218,
+        "jumlahLayout": 224,
+        "durasiDtk": 10
+      },
+      "putaran": [
+        {
+          "inp": null,
+          "jumlahInteraksi": 0,
+          "longTaskTerlama": 143,
+          "jumlahLongTask": 55,
+          "totalBlokir": 2899,
+          "frameLambat": 54,
+          "frameTerburuk": 229,
+          "cls": 0,
+          "taskMs": 11506,
+          "skripMs": 1068,
+          "layoutMs": 2879,
+          "gayaMs": 221,
+          "jumlahLayout": 202,
+          "durasiDtk": 10
+        },
+        {
+          "inp": null,
+          "jumlahInteraksi": 0,
+          "longTaskTerlama": 140,
+          "jumlahLongTask": 60,
+          "totalBlokir": 2630,
+          "frameLambat": 60,
+          "frameTerburuk": 243,
+          "cls": 0,
+          "taskMs": 11404,
+          "skripMs": 1100,
+          "layoutMs": 2842,
+          "gayaMs": 213,
+          "jumlahLayout": 224,
+          "durasiDtk": 10
+        },
+        {
+          "inp": null,
+          "jumlahInteraksi": 0,
+          "longTaskTerlama": 165,
+          "jumlahLongTask": 63,
+          "totalBlokir": 2492,
+          "frameLambat": 62,
+          "frameTerburuk": 243,
+          "cls": 0,
+          "taskMs": 11530,
+          "skripMs": 1109,
+          "layoutMs": 2698,
+          "gayaMs": 218,
+          "jumlahLayout": 225,
+          "durasiDtk": 10
+        }
+      ]
+    }
+  }
+}
