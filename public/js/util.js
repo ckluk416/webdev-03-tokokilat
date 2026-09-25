@@ -29,6 +29,11 @@ export function hargaSetelahDiskon(produk) {
   return Math.round((produk.harga * (100 - produk.diskon)) / 100 / 100) * 100;
 }
 
+// Menjalankan fn di task baru setelah frame berikutnya tergambar, supaya umpan balik visual tidak menunggu fn.
+export function setelahFrame(fn) {
+  requestAnimationFrame(() => setTimeout(fn, 0));
+}
+
 // Salinan dalam (deep copy) supaya objek konfigurasi tidak termutasi.
 export function salinDalam(objek) {
   return JSON.parse(JSON.stringify(objek));

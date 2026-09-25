@@ -1,7 +1,7 @@
 // Keranjang belanja, riwayat penelusuran, dan "Beli sekarang".
 // Semua disimpan di localStorage supaya tetap ada walau halaman dimuat ulang.
 
-import { $, el, formatRupiah, hargaSetelahDiskon, salinDalam, tampilkanToast } from './util.js';
+import { $, el, formatRupiah, hargaSetelahDiskon, salinDalam, setelahFrame, tampilkanToast } from './util.js';
 
 const KUNCI_KERANJANG = 'tk_keranjang';
 const KUNCI_RIWAYAT = 'tk_riwayat';
@@ -21,6 +21,39 @@ function simpanRiwayat(riwayat) {
   localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify(riwayat));
 }
 
+// Riwayat (sekitar 1,2 MB JSON) dibaca sekali lalu disimpan di memori. Menulisnya kembali ke localStorage
+// dilakukan saat browser idle, bukan di dalam task klik.
+let riwayatMemori = null;
+let simpanDijadwalkan = false;
+
+function ambilRiwayat() {
+  if (!riwayatMemori) riwayatMemori = bacaRiwayat();
+  return riwayatMemori;
+}
+
+function simpanRiwayatNanti() {
+  if (simpanDijadwalkan) return;
+  simpanDijadwalkan = true;
+  const simpan = () => {
+    simpanDijadwalkan = false;
+    simpanRiwayat(riwayatMemori);
+  };
+  if ('requestIdleCallback' in window) requestIdleCallback(simpan, { timeout: 2000 });
+  else setTimeout(simpan, 200);
+}
+
+function catatRiwayat(entri) {
+  ambilRiwayat().push(entri);
+  simpanRiwayatNanti();
+}
+
+// riwayat yang belum sempat tersimpan tetap ditulis bila tab ditutup
+window.addEventListener('pagehide', () => {
+  if (!simpanDijadwalkan) return;
+  simpanDijadwalkan = false;
+  simpanRiwayat(riwayatMemori);
+});
+
 // Riwayat aktivitas dipakai tim rekomendasi ("Karena kamu melihat...").
 // Untuk pengembangan, kita isi dengan data contoh pelanggan lama yang aktif
 // sejak 2023 supaya kondisinya mirip pengguna sungguhan.
@@ -37,9 +70,10 @@ export function siapkanRiwayatContoh(semuaProduk) {
   simpanRiwayat(riwayat);
 }
 
-export function perbaruiLencana() {
-  const total = bacaKeranjang().reduce((n, item) => n + item.jumlah, 0);
-  $('#lencana-keranjang').textContent = total;
+const jumlahItem = (isi) => isi.reduce((n, item) => n + item.jumlah, 0);
+
+export function perbaruiLencana(isi = bacaKeranjang()) {
+  $('#lencana-keranjang').textContent = jumlahItem(isi);
 }
 
 function gambarPanel() {
@@ -66,24 +100,17 @@ function gambarPanel() {
 }
 
 export function tambahKeKeranjang(produk, tombol) {
-  const konfig = salinDalam(KONFIG);
   const keranjang = bacaKeranjang();
-  const riwayat = bacaRiwayat();
-
-  const ada = keranjang.find((item) => item.id === produk.id);
-  if (ada) ada.jumlah = Math.min(ada.jumlah + 1, konfig.maksPerProduk);
-  else keranjang.push({ id: produk.id, nama: produk.nama, harga: hargaSetelahDiskon(produk), jumlah: 1 });
-
-  riwayat.push({ t: Date.now(), jenis: 'keranjang', id: produk.id, nama: produk.nama, kategori: produk.kategori, harga: produk.harga });
-
-  // Tim data minta konteks selengkap mungkin di setiap event.
-  window.Lacak.kirim('add_to_cart', { produk, keranjang, riwayat, sumber: konfig.sumber });
-
+  let item = keranjang.find((x) => x.id === produk.id);
+  if (item) item.jumlah = Math.min(item.jumlah + 1, KONFIG.maksPerProduk);
+  else {
+    item = { id: produk.id, nama: produk.nama, harga: hargaSetelahDiskon(produk), jumlah: 1 };
+    keranjang.push(item);
+  }
   simpanKeranjang(keranjang);
-  simpanRiwayat(riwayat);
 
-  // Data sudah aman tersimpan, baru tampilan diperbarui.
-  perbaruiLencana();
+  // Umpan balik lebih dulu. Riwayat dan analitik tidak terlihat pengguna, jadi dikerjakan setelah frame ini tergambar.
+  perbaruiLencana(keranjang);
   tombol.textContent = 'Ditambahkan ✓';
   tombol.classList.add('sudah');
   setTimeout(() => {
@@ -91,14 +118,23 @@ export function tambahKeKeranjang(produk, tombol) {
     tombol.classList.remove('sudah');
   }, 1500);
   tampilkanToast('Ditambahkan ke keranjang: ' + produk.nama);
+
+  setelahFrame(() => {
+    catatRiwayat({ t: Date.now(), jenis: 'keranjang', id: produk.id, nama: produk.nama, kategori: produk.kategori, harga: produk.harga });
+    // SDK meng-hash seluruh payload; riwayat 1,2 MB tidak ikut dikirim, cukup ringkasan keranjang.
+    window.Lacak.kirim('add_to_cart', {
+      produkId: produk.id, nama: produk.nama, harga: item.harga, jumlah: item.jumlah,
+      totalItemKeranjang: jumlahItem(keranjang), sumber: KONFIG.sumber,
+    });
+  });
 }
 
 export async function beliSekarang(produk, tombol) {
   const konfig = salinDalam(KONFIG);
-  const riwayat = bacaRiwayat();
+  const riwayat = ambilRiwayat();
   riwayat.push({ t: Date.now(), jenis: 'beli', id: produk.id, nama: produk.nama, kategori: produk.kategori, harga: produk.harga });
   window.Lacak.kirim('begin_checkout', { produk, riwayat, sumber: konfig.sumber });
-  simpanRiwayat(riwayat);
+  simpanRiwayatNanti();
 
   const respons = await fetch('/api/pesanan', {
     method: 'POST',
