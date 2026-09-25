@@ -34,6 +34,13 @@ export function setelahFrame(fn) {
   requestAnimationFrame(() => setTimeout(fn, 0));
 }
 
+// Menyerahkan kendali ke event loop: task berikutnya (input, rendering) boleh berjalan dulu.
+// Promise biasa tidak cukup, karena microtask dikuras sebelum browser sempat menggambar.
+export function jedaKeBrowser() {
+  if (globalThis.scheduler && typeof scheduler.yield === 'function') return scheduler.yield();
+  return new Promise((selesai) => setTimeout(selesai, 0));
+}
+
 // Salinan dalam (deep copy) supaya objek konfigurasi tidak termutasi.
 export function salinDalam(objek) {
   return JSON.parse(JSON.stringify(objek));
