@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TokoKilat - Flash Sale 12.12</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  <link rel="stylesheet" href="/css/toko.css">
+  <!-- SDK analitik dari vendor (wajib ada menurut tim marketing) -->
+  <script src="/vendor/lacak.min.js"></script>
+</head>
+<body>
+  <a class="lompat" href="#kisi">Langsung ke daftar produk</a>
+
+  <header class="kepala" id="kepala">
+    <div class="kepala-isi">
+      <a class="merek-toko" href="/" aria-label="TokoKilat, beranda">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 1 4 13.5h6L8.5 23 20 9.5h-6.5z"/></svg>
+        TokoKilat
+      </a>
+      <div class="cari">
+        <label class="hanya-pembaca-layar" for="kolom-cari">Cari produk</label>
+        <input id="kolom-cari" type="search" autocomplete="off" placeholder="Cari produk, merek, atau kota pengirim">
+      </div>
+      <button class="tombol-kepala" id="tombol-pesanan" type="button">Pesanan <b id="lencana-pesanan">0</b></button>
+      <button class="tombol-kepala" id="tombol-keranjang" type="button" aria-controls="panel-keranjang" aria-expanded="false">Keranjang <b id="lencana-keranjang">0</b></button>
+    </div>
+    <div class="bar-gulir" id="bar-gulir" aria-hidden="true"></div>
+  </header>
+
+  <section class="kilat" aria-label="Flash sale 12.12">
+    <div class="kilat-isi">
+      <div class="kilat-judul">
+        <h1>Flash sale 12.12</h1>
+        <p>Harga kilat berakhir dalam</p>
+      </div>
+      <div class="hitung-mundur" id="hitung-mundur" role="timer" aria-label="Sisa waktu flash sale">
+        <div class="angka"><span id="hm-jam">00</span><small>jam</small></div>
+        <div class="angka"><span id="hm-menit">00</span><small>menit</small></div>
+        <div class="angka"><span id="hm-detik">00</span><small>detik</small></div>
+        <div class="angka kecil"><span id="hm-senti">00</span><small>&nbsp;</small></div>
+        <div class="hm-garis" id="hm-garis"></div>
+      </div>
+    </div>
+    <div class="berjalan" aria-hidden="true">
+      <div class="berjalan-teks" id="berjalan-teks">
+        Gratis ongkir se-Indonesia &nbsp;⚡&nbsp; Voucher KILAT1212 potongan sampai Rp120.000 &nbsp;⚡&nbsp; Cicilan 0% sampai 24 bulan &nbsp;⚡&nbsp; Garansi uang kembali 7 hari &nbsp;⚡&nbsp; Bayar di tempat tersedia di 400+ kota &nbsp;⚡&nbsp; Stok flash sale terbatas, siapa cepat dia dapat
+      </div>
+    </div>
+  </section>
+
+  <main class="utama" id="utama">
+    <div class="alat" id="alat">
+      <div class="keping-kategori" id="keping-kategori" role="group" aria-label="Saring kategori"></div>
+      <div class="alat-kanan">
+        <label>Urutkan
+          <select id="pilih-urut">
+            <option value="relevan">Paling relevan</option>
+            <option value="murah">Harga terendah</option>
+            <option value="mahal">Harga tertinggi</option>
+            <option value="laris">Terlaris</option>
+            <option value="rating">Rating tertinggi</option>
+          </select>
+        </label>
+        <div class="voucher">
+          <label class="hanya-pembaca-layar" for="kolom-voucher">Kode voucher</label>
+          <input id="kolom-voucher" type="text" placeholder="Kode voucher" value="KILAT1212" autocomplete="off">
+          <button id="tombol-voucher" type="button">Pakai voucher</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="progres" id="progres" hidden>
+      <div class="progres-teks" id="progres-teks">Menghitung harga promo…</div>
+      <div class="progres-jalur"><div class="progres-isi" id="progres-isi"></div></div>
+    </div>
+
+    <p class="ringkasan" id="ringkasan" aria-live="polite">Memuat produk…</p>
+    <div class="kisi" id="kisi"></div>
+  </main>
+
+  <aside class="panel" id="panel-keranjang" aria-label="Keranjang belanja" hidden>
+    <div class="panel-kepala">
+      <h2>Keranjang</h2>
+      <button type="button" id="tutup-keranjang" aria-label="Tutup keranjang">Tutup</button>
+    </div>
+    <ul class="panel-daftar" id="daftar-keranjang"></ul>
+    <div class="panel-kaki">
+      <div class="panel-total"><span>Total</span><strong id="total-keranjang">Rp0</strong></div>
+      <button type="button" id="kosongkan-keranjang">Kosongkan keranjang</button>
+    </div>
+  </aside>
+
+  <footer class="kaki">
+    <div class="kaki-isi">
+      <section>
+        <h2>Merek paling laris</h2>
+        <ol id="merek-populer"></ol>
+      </section>
+      <section>
+        <h2>Sering dibeli bersamaan</h2>
+        <ul id="kategori-terkait"></ul>
+      </section>
+      <section>
+        <h2>Tentang halaman ini</h2>
+        <p>TokoKilat adalah toko fiktif untuk keperluan perkuliahan. Tidak ada transaksi sungguhan.</p>
+      </section>
+    </div>
+    <div class="kaki-hias" aria-hidden="true"></div>
+  </footer>
+
+  <button class="ke-atas" id="ke-atas" type="button" hidden>Ke atas</button>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>
