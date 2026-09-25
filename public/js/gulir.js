@@ -4,52 +4,66 @@
 import { $ } from './util.js';
 
 const sudahTercatat = new Set();
+const impresiTertunda = [];
+let pengaturWaktuImpresi = null;
 
-export function periksaGulir() {
-  const kepala = $('#kepala');
-  const bar = $('#bar-gulir');
-  const keAtas = $('#ke-atas');
+// impresi dikumpulkan lalu dikirim paling sering sekali per detik; tiap panggilan SDK punya biaya tetap
+function kirimImpresi() {
+  pengaturWaktuImpresi = null;
+  if (impresiTertunda.length && window.Lacak) window.Lacak.kirim('impression', { produk: impresiTertunda.splice(0) });
+}
 
-  const y = window.scrollY;
-  kepala.classList.toggle('melayang', y > 8);
-  keAtas.hidden = y < 900;
-
-  const tinggiDokumen = document.documentElement.scrollHeight - window.innerHeight;
-  bar.style.width = (tinggiDokumen > 0 ? (y / tinggiDokumen) * 100 : 0) + '%';
-
-  // Kartu yang masuk layar dimunculkan dengan animasi, dan dicatat sebagai impresi.
-  const tinggiLayar = window.innerHeight;
-  const impresiBaru = [];
-  document.querySelectorAll('.kartu').forEach((kartu) => {
-    const kotak = kartu.getBoundingClientRect();
-    const masukLayar = kotak.top < tinggiLayar + 80 && kotak.bottom > -80;
-    if (masukLayar && !kartu.classList.contains('terlihat')) {
-      kartu.classList.add('terlihat');
-      kartu.style.minHeight = Math.round(kotak.height) + 'px'; // cegah kartu "mengempis" saat animasi
-    }
-    if (masukLayar && !sudahTercatat.has(kartu.dataset.id)) {
+// Kartu yang masuk layar (dengan margin 80 px) dimunculkan dan dicatat sebagai impresi.
+// IntersectionObserver menghitung perpotongan di luar task gulir, tanpa getBoundingClientRect per kartu.
+const pengamatKartu = new IntersectionObserver((entri) => {
+  for (const e of entri) {
+    if (!e.isIntersecting) continue;
+    const kartu = e.target;
+    kartu.classList.add('terlihat');
+    if (!sudahTercatat.has(kartu.dataset.id)) {
       sudahTercatat.add(kartu.dataset.id);
-      impresiBaru.push(kartu.dataset.id);
+      impresiTertunda.push(kartu.dataset.id);
     }
-  });
+  }
+  if (impresiTertunda.length && !pengaturWaktuImpresi) pengaturWaktuImpresi = setTimeout(kirimImpresi, 1000);
+}, { rootMargin: '80px 0px' });
 
-  if (impresiBaru.length && window.Lacak) window.Lacak.kirim('impression', { produk: impresiBaru });
+export function amatiKartu(kartu) {
+  pengamatKartu.observe(kartu);
+}
+
+let tinggiGulir = 0;
+let perluUkur = true;
+let dijadwalkan = false;
+
+function perbaruiTampilan() {
+  dijadwalkan = false;
+  // dibaca paling banyak sekali per frame, dan hanya bila ukuran dokumen mungkin berubah
+  if (perluUkur) {
+    tinggiGulir = document.documentElement.scrollHeight - window.innerHeight;
+    perluUkur = false;
+  }
+  const y = window.scrollY;
+  $('#kepala').classList.toggle('melayang', y > 8);
+  $('#ke-atas').hidden = y < 900;
+  $('#bar-gulir').style.transform = 'scaleX(' + (tinggiGulir > 0 ? Math.min(y / tinggiGulir, 1) : 0) + ')';
+}
+
+// Dipanggil saat gulir, saat ukuran berubah, dan setelah kisi dirender. Pekerjaan digabung per frame.
+export function periksaGulir() {
+  if (dijadwalkan) return;
+  dijadwalkan = true;
+  requestAnimationFrame(perbaruiTampilan);
 }
 
 export function pasangGulir() {
-  window.addEventListener('scroll', periksaGulir);
-  window.addEventListener('resize', periksaGulir);
+  window.addEventListener('scroll', periksaGulir, { passive: true });
+  window.addEventListener('resize', () => { perluUkur = true; periksaGulir(); }, { passive: true });
+  // tinggi dokumen berubah saat kisi atau banner bertambah; ResizeObserver memberi tahu setelah layout selesai
+  new ResizeObserver(() => { perluUkur = true; periksaGulir(); }).observe(document.body);
 
-  // Cegah "pull to refresh" tak sengaja di Android ketika pengguna sedang di puncak halaman.
-  let yAwal = 0;
-  const utama = $('#utama');
-  utama.addEventListener('touchstart', (e) => { yAwal = e.touches[0].clientY; }, { passive: false });
-  utama.addEventListener('touchmove', (e) => {
-    const menarikKeBawah = e.touches[0].clientY > yAwal;
-    if (window.scrollY === 0 && menarikKeBawah) e.preventDefault();
-    periksaGulir();
-  }, { passive: false });
-  utama.addEventListener('wheel', () => { periksaGulir(); }, { passive: false });
+  // Pull to refresh tak sengaja di Android dicegah dengan overscroll-behavior di CSS, bukan dengan
+  // listener touchmove non-passive yang membuat compositor menunggu main thread di setiap guliran.
 
   $('#ke-atas').addEventListener('click', () => window.scrollTo({ top: 0 }));
 }
