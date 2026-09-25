@@ -10,10 +10,29 @@ export const keadaan = {
   hargaVoucher: new Map(), // id produk -> harga setelah voucher
 };
 
+// Kartu dirender bertahap: potongan pertama langsung, sisanya saat sentinel di ujung kisi mendekati layar.
+const UKURAN_POTONGAN = 40;
+let jumlahDirender = 0;
+
+// Elemen kartu disimpan per id dan dipakai ulang antar-render, sehingga <img> tidak dibuat (dan diunduh) ulang.
+const simpananKartu = new Map(); // id produk -> { kartu, harga, produk }
+
 export async function muatProduk() {
   const respons = await fetch('/api/produk');
   keadaan.semuaProduk = await respons.json();
   return keadaan.semuaProduk;
+}
+
+function isiHarga(harga, produk) {
+  const kini = el('span', 'harga-kini', formatRupiah(hargaSetelahDiskon(produk)));
+  harga.replaceChildren(kini);
+  if (produk.diskon > 0) {
+    harga.append(el('span', 'harga-asli', formatRupiah(produk.harga)));
+    harga.append(el('span', 'harga-diskon', '-' + produk.diskon + '%'));
+  }
+  const hargaVoucher = keadaan.hargaVoucher.get(produk.id);
+  if (hargaVoucher) harga.append(el('span', 'harga-voucher', 'Pakai voucher: ' + formatRupiah(hargaVoucher)));
+  harga.dataset.voucher = hargaVoucher || '';
 }
 
 function buatKartu(produk) {
@@ -33,13 +52,7 @@ function buatKartu(produk) {
   badan.append(el('h3', 'kartu-judul', produk.nama));
 
   const harga = el('div', 'harga');
-  harga.append(el('span', 'harga-kini', formatRupiah(hargaSetelahDiskon(produk))));
-  if (produk.diskon > 0) {
-    harga.append(el('span', 'harga-asli', formatRupiah(produk.harga)));
-    harga.append(el('span', 'harga-diskon', '-' + produk.diskon + '%'));
-  }
-  const hargaVoucher = keadaan.hargaVoucher.get(produk.id);
-  if (hargaVoucher) harga.append(el('span', 'harga-voucher', 'Pakai voucher: ' + formatRupiah(hargaVoucher)));
+  isiHarga(harga, produk);
   badan.append(harga);
 
   badan.append(el('div', 'keterangan', '★ ' + produk.rating.toLocaleString('id-ID') + ' | ' + formatRibuan(produk.terjual) + ' terjual'));
@@ -56,31 +69,51 @@ function buatKartu(produk) {
   badan.append(aksi);
 
   kartu.append(media, badan);
+  simpananKartu.set(produk.id, { kartu, harga, produk });
   return kartu;
 }
 
-// Judul produk panjangnya beda-beda (1-3 baris). Supaya harga & tombol dalam
-// satu deret sejajar rapi, tinggi judul disamakan mengikuti judul tertinggi.
-// Mengukur semua judul terlalu lambat, jadi cukup ukur sebagian sebagai contoh.
-const JUMLAH_CONTOH = 24;
+function ambilKartu(produk) {
+  const tersimpan = simpananKartu.get(produk.id);
+  if (!tersimpan) return buatKartu(produk);
+  const voucher = String(keadaan.hargaVoucher.get(produk.id) || '');
+  if (tersimpan.harga.dataset.voucher !== voucher) isiHarga(tersimpan.harga, produk);
+  return tersimpan.kartu;
+}
 
-function samakanTinggiJudul() {
-  const judul = document.querySelectorAll('.kartu-judul');
-  let tertinggi = 0;
-  for (let i = 0; i < judul.length && i < JUMLAH_CONTOH; i++) {
-    const j = judul[i];
-    j.style.height = 'auto';
-    const tinggi = j.offsetHeight;
-    if (tinggi > tertinggi) tertinggi = tinggi;
-    j.style.height = tertinggi + 'px';
-  }
-  judul.forEach((j) => { j.style.height = tertinggi + 'px'; });
+let sentinel;
+let pengamatSentinel;
+
+function tambahPotongan() {
+  const daftar = keadaan.ditampilkan;
+  if (jumlahDirender >= daftar.length) return;
+  const akhir = Math.min(jumlahDirender + UKURAN_POTONGAN, daftar.length);
+  const potongan = document.createDocumentFragment();
+  for (let i = jumlahDirender; i < akhir; i++) potongan.append(ambilKartu(daftar[i]));
+  jumlahDirender = akhir;
+  $('#kisi').append(potongan);
+  // observe ulang: bila sentinel masih dekat layar setelah potongan ditambahkan, callback terpanggil lagi
+  pengamatSentinel.unobserve(sentinel);
+  if (jumlahDirender < daftar.length) pengamatSentinel.observe(sentinel);
+  periksaGulir();
+}
+
+function siapkanSentinel() {
+  if (sentinel) return;
+  sentinel = el('div', 'kisi-sentinel');
+  sentinel.setAttribute('aria-hidden', 'true');
+  $('#kisi').after(sentinel);
+  pengamatSentinel = new IntersectionObserver((entri) => {
+    if (entri.some((e) => e.isIntersecting)) tambahPotongan();
+  }, { rootMargin: '0px 0px 1200px 0px' });
 }
 
 export function renderProduk(daftar) {
+  siapkanSentinel();
   const kisi = $('#kisi');
   keadaan.ditampilkan = daftar;
-  kisi.innerHTML = '';
+  jumlahDirender = 0;
+  kisi.replaceChildren();
 
   if (daftar.length === 0) {
     const kosong = el('div', 'kosong');
@@ -88,15 +121,14 @@ export function renderProduk(daftar) {
     kisi.append(kosong);
   }
 
-  for (const produk of daftar) {
-    kisi.append(buatKartu(produk));
-  }
-
-  samakanTinggiJudul();
   $('#ringkasan').textContent = daftar.length.toLocaleString('id-ID') + ' produk ditampilkan';
-  periksaGulir();
+  tambahPotongan();
 }
 
+// Hanya kartu yang pernah dibuat yang diperbarui; kartu lain memakai harga voucher saat pertama dibuat.
 export function perbaruiHargaVoucherDiKartu() {
-  renderProduk(keadaan.ditampilkan);
+  for (const { harga, produk } of simpananKartu.values()) {
+    const voucher = String(keadaan.hargaVoucher.get(produk.id) || '');
+    if (harga.dataset.voucher !== voucher) isiHarga(harga, produk);
+  }
 }
