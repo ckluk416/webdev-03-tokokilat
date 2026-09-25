@@ -1,6 +1,11 @@
 // Menjalankan skenario uji baku (TUGAS.md bagian 7) secara otomatis lewat Chrome DevTools Protocol.
-// Profil Chrome baru (setara Incognito, tanpa ekstensi), CPU 4x slowdown, viewport 412 x 915, tiap skenario 3 kali, dilaporkan median.
-// Pakai: npm start (terminal lain), lalu node laporan/bench/ukur-cdp.js <label> [jumlahUlang] [skenario,...] [--trace]
+// Profil Chrome baru (setara Incognito, tanpa ekstensi), viewport 412 x 915, tiap skenario diulang dan dilaporkan median.
+// Pakai: npm start (terminal lain), lalu CPU=4 node laporan/bench/ukur-cdp.js <label> [jumlahUlang] [S0,S1,...] [--trace] [--gambar-penuh]
+//
+// Metrik tidak dibaca lewat Runtime.evaluate, karena pada halaman awal main thread hampir selalu penuh dan evaluate bisa tertahan
+// berdetik-detik. Sebagai gantinya, skrip kecil yang dipasang sejak dokumen dibuat mengirim entri mentah (event timing, long task,
+// layout shift, jeda antar-frame) lewat binding CDP. INP, CLS, long task, dan frame lambat dihitung di sini untuk jendela waktu
+// tiap skenario, dengan aturan yang sama dengan public/alat/ukur.js.
 
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -10,17 +15,58 @@ const zlib = require('zlib');
 
 const CHROME = process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const ASAL = process.env.ASAL || 'http://localhost:3000';
+const CPU = Number(process.env.CPU || 4);
 const PORT_DEBUG = 9333;
-const label = process.argv[2] || 'uji';
-const ULANG = Number(process.argv[3]) || 3;
-const PILIHAN = (process.argv[4] && !process.argv[4].startsWith('--') ? process.argv[4].split(',') : ['S0', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6']);
+const argumen = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const label = argumen[0] || 'uji';
+const ULANG = Number(argumen[1]) || 3;
+const PILIHAN = argumen[2] ? argumen[2].split(',') : ['S0', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
 const DENGAN_TRACE = process.argv.includes('--trace');
 const TUNGGU_GAMBAR_PENUH = process.argv.includes('--gambar-penuh');
 const DIR_HASIL = path.join(__dirname, '..', 'hasil');
 const DIR_TRACE = path.join(__dirname, '..', 'trace');
+const log = (...a) => { if (process.env.DEBUG) console.log(' ', ...a); };
 
 const tidur = (ms) => new Promise((r) => setTimeout(r, ms));
 const median = (arr) => { const a = arr.filter((x) => x != null).sort((x, y) => x - y); return a.length ? a[(a.length - 1) >> 1] : null; };
+
+// ---------- skrip yang disuntikkan ke halaman ----------
+const SKRIP_HALAMAN = `(() => {
+  const antre = [];
+  const kirim = (e) => antre.push(e);
+  const epoch = (t) => performance.timeOrigin + t;
+  const po = (type, fn, opsi = {}) => { try { new PerformanceObserver((l) => l.getEntries().forEach(fn)).observe({ type, buffered: true, ...opsi }); } catch (e) {} };
+  po('event', (e) => { if (e.interactionId) kirim({ k: 'ev', id: e.interactionId, t: epoch(e.startTime), d: e.duration, n: e.name }); }, { durationThreshold: 16 });
+  po('longtask', (e) => kirim({ k: 'lt', t: epoch(e.startTime), d: e.duration }));
+  po('layout-shift', (e) => kirim({ k: 'ls', t: epoch(e.startTime), v: e.value, input: e.hadRecentInput }));
+  let sebelum = 0;
+  const frame = (t) => { if (sebelum && t - sebelum > 50) kirim({ k: 'fr', t: epoch(t), d: t - sebelum }); sebelum = t; requestAnimationFrame(frame); };
+  requestAnimationFrame(frame);
+  // progres voucher: lebar/skala yang ada saat frame dibuat
+  let progresTerakhir = null;
+  const pantauProgres = () => {
+    const wadah = document.getElementById('progres'), isi = document.getElementById('progres-isi');
+    if (wadah && isi && !wadah.hidden) { const nilai = isi.style.width + '|' + isi.style.transform; if (nilai !== progresTerakhir) { progresTerakhir = nilai; kirim({ k: 'pg', t: Date.now(), v: nilai }); } }
+    else if (wadah && wadah.hidden && progresTerakhir !== null) { progresTerakhir = null; kirim({ k: 'pg-selesai', t: Date.now() }); }
+    requestAnimationFrame(pantauProgres);
+  };
+  requestAnimationFrame(pantauProgres);
+  setInterval(() => {
+    const q = (s) => document.querySelector(s);
+    const keadaan = {
+      t: Date.now(),
+      siap: !!(window.AlatUkur && q('#kisi .kartu') && q('.promo-banner h2')),
+      keranjang: q('#lencana-keranjang') ? q('#lencana-keranjang').textContent : null,
+      pesanan: q('#lencana-pesanan') ? q('#lencana-pesanan').textContent : null,
+      cari: q('#kolom-cari') ? q('#kolom-cari').value : null,
+      y: Math.round(scrollY),
+      ringkasan: q('#ringkasan') ? q('#ringkasan').textContent : null,
+      toast: q('#toast') ? q('#toast').textContent : null,
+    };
+    const isi = antre.splice(0);
+    try { window.__lapor(JSON.stringify({ keadaan, isi })); } catch (e) { antre.unshift(...isi); }
+  }, 250);
+})();`;
 
 class Sesi {
   constructor(url) {
@@ -37,7 +83,6 @@ class Sesi {
   }
   kirim(method, params = {}) {
     const id = ++this.id;
-    if (process.env.DEBUG > 1) console.log('  >', method);
     this.ws.send(JSON.stringify({ id, method, params }));
     return new Promise((ok, gagal) => this.tunggu.set(id, { ok, gagal }));
   }
@@ -45,10 +90,58 @@ class Sesi {
   off(method) { this.pendengar.delete(method); }
 }
 
+// data yang dikirim halaman
+const catatan = { entri: [], keadaan: null };
+function terimaLaporan(p) {
+  if (p.name !== '__lapor') return;
+  const { keadaan, isi } = JSON.parse(p.payload);
+  catatan.keadaan = keadaan;
+  catatan.entri.push(...isi);
+}
+
+async function tungguKeadaan(syarat, batasMs = 90000) {
+  const mulai = Date.now();
+  while (Date.now() - mulai < batasMs) {
+    if (catatan.keadaan && catatan.keadaan.t > mulai && syarat(catatan.keadaan)) return catatan.keadaan;
+    await tidur(200);
+  }
+  return catatan.keadaan;
+}
+
 async function nilai(s, ekspresi) {
+  const t0 = Date.now();
   const r = await s.kirim('Runtime.evaluate', { expression: ekspresi, awaitPromise: true, returnByValue: true });
+  log('evaluate', Date.now() - t0, 'ms', ekspresi.slice(0, 50));
   if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text);
   return r.result.value;
+}
+
+function hitungMetrik(dari, sampai) {
+  const di = (e) => e.t >= dari && e.t <= sampai;
+  const interaksi = new Map();
+  for (const e of catatan.entri.filter((x) => x.k === 'ev' && di(x))) {
+    const lama = interaksi.get(e.id);
+    if (!lama || e.d > lama.d) interaksi.set(e.id, e);
+  }
+  const durasi = [...interaksi.values()].sort((a, b) => b.d - a.d);
+  const inp = durasi.length ? durasi[Math.min(Math.floor(durasi.length / 50), durasi.length - 1)] : null;
+  const lt = catatan.entri.filter((x) => x.k === 'lt' && di(x)).map((x) => x.d);
+  const fr = catatan.entri.filter((x) => x.k === 'fr' && di(x)).map((x) => x.d);
+  let cls = 0, sesi = 0, akhir = -Infinity, awalSesi = 0;
+  for (const e of catatan.entri.filter((x) => x.k === 'ls' && !x.input && di(x)).sort((a, b) => a.t - b.t)) {
+    if (e.t - akhir < 1000 && e.t - awalSesi < 5000) sesi += e.v; else { sesi = e.v; awalSesi = e.t; }
+    akhir = e.t; cls = Math.max(cls, sesi);
+  }
+  return {
+    inp: inp ? Math.round(inp.d) : null,
+    jumlahInteraksi: durasi.length,
+    longTaskTerlama: lt.length ? Math.round(Math.max(...lt)) : 0,
+    jumlahLongTask: lt.length,
+    totalBlokir: Math.round(lt.reduce((n, d) => n + Math.max(d - 50, 0), 0)),
+    frameLambat: fr.length,
+    frameTerburuk: fr.length ? Math.round(Math.max(...fr)) : 0,
+    cls: Math.round(cls * 1000) / 1000,
+  };
 }
 
 async function klik(s, x, y) {
@@ -72,7 +165,7 @@ function hapus(s) {
 }
 
 async function pusat(s, selektor) {
-  return nilai(s, `(() => { const e = document.querySelector(${JSON.stringify(selektor)}); if (!e) return null; const r = e.getBoundingClientRect(); return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2), atas: r.top, bawah: r.bottom }; })()`);
+  return nilai(s, `(() => { const e = document.querySelector(${JSON.stringify(selektor)}); if (!e) return null; const r = e.getBoundingClientRect(); return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) }; })()`);
 }
 
 async function metrikPerforma(s) {
@@ -82,28 +175,18 @@ async function metrikPerforma(s) {
 }
 const selisih = (a, b) => Object.fromEntries(Object.keys(a).map((k) => [k, Math.round(b[k] - a[k])]));
 
-async function muat(s, tunggu = true) {
+async function muat(s, { reload = false } = {}) {
   const t0 = Date.now();
-  await s.kirim('Page.navigate', { url: ASAL + '/?ukur=1' });
-  if (!tunggu) return;
-  // tunggu kisi dan banner promo muncul, lalu beri waktu halaman tenang
-  for (let i = 0; i < 120; i++) {
-    await tidur(500);
-    try {
-      const siap = await nilai(s, `!!(window.AlatUkur && document.querySelector('#kisi .kartu') && document.querySelector('.promo-banner'))`);
-      if (siap) break;
-    } catch { /* halaman sedang berpindah */ }
-  }
-  if (process.env.DEBUG) console.log('  muat siap dalam', Date.now() - t0, 'ms');
-  await tidur(4000);
-}
-
-async function resetUkur(s) {
-  await nilai(s, `document.querySelector('#au-reset').click()`);
+  catatan.entri = []; catatan.keadaan = null;
+  if (reload) await s.kirim('Page.reload', { ignoreCache: true });
+  else await s.kirim('Page.navigate', { url: ASAL + '/?ukur=1' });
+  const k = await tungguKeadaan((x) => x.siap, 120000);
+  log('muat siap dalam', Date.now() - t0, 'ms', k && k.siap);
+  return t0;
 }
 
 async function mulaiTrace(s, denganLayar) {
-  const kategori = ['-*', 'devtools.timeline', 'disabled-by-default-devtools.timeline', 'disabled-by-default-devtools.timeline.frame', 'disabled-by-default-devtools.timeline.stack', 'v8.execute', 'disabled-by-default-v8.cpu_profiler', 'blink.user_timing', 'loading', 'latencyInfo', 'devtools.timeline.async', 'disabled-by-default-devtools.timeline.invalidationTracking', 'blink.console', 'disabled-by-default-layout_shift.debug'];
+  const kategori = ['devtools.timeline', 'disabled-by-default-devtools.timeline', 'disabled-by-default-devtools.timeline.frame', 'disabled-by-default-devtools.timeline.stack', 'v8.execute', 'disabled-by-default-v8.cpu_profiler', 'blink.user_timing', 'loading', 'latencyInfo', 'devtools.timeline.async', 'blink.console', 'disabled-by-default-layout_shift.debug'];
   if (denganLayar) kategori.push('disabled-by-default-devtools.screenshot');
   await s.kirim('Tracing.start', { transferMode: 'ReturnAsStream', traceConfig: { includedCategories: kategori, excludedCategories: ['*'], recordMode: 'recordAsMuchAsPossible' } });
 }
@@ -122,97 +205,111 @@ async function hentikanTrace(s, nama) {
   fs.mkdirSync(DIR_TRACE, { recursive: true });
   const berkas = path.join(DIR_TRACE, `${label}-${nama.toLowerCase()}.json.gz`);
   fs.writeFileSync(berkas, zlib.gzipSync(Buffer.concat(potongan)));
-  return path.relative(path.join(__dirname, '..', '..'), berkas);
+  return path.relative(path.join(__dirname, '..', '..'), berkas).split(path.sep).join('/');
 }
 
 // ---------- skenario ----------
 
 async function S0(s, rekam) {
-  const gambar = new Map(); let t0 = 0;
+  await muat(s);
+  await tidur(3000);
+  // Network hanya aktif selama S0; bila aktif terus, buffer respons DevTools ikut membebani pemuatan berikutnya
+  await s.kirim('Network.enable', { maxTotalBufferSize: 0, maxResourceBufferSize: 0 });
+  const gambar = new Map();
   s.on('Network.requestWillBeSent', (p) => { if (p.request.url.includes('/img/p/')) gambar.set(p.requestId, { mulai: p.timestamp, selesai: null }); });
   s.on('Network.loadingFinished', (p) => { const g = gambar.get(p.requestId); if (g) g.selesai = p.timestamp; });
-  s.on('Page.frameStartedLoading', () => { if (!t0) t0 = Date.now() / 1000; });
   if (rekam) await mulaiTrace(s, true);
-  const awal = Date.now();
-  await s.kirim('Page.reload', { ignoreCache: true });
-  await tidur(10000);
-  let ringkas = null;
-  try { ringkas = await nilai(s, 'window.AlatUkur && window.AlatUkur.ringkas()'); } catch { /* belum siap */ }
+  const t0 = await muat(s, { reload: true });
+  const sisa = 10000 - (Date.now() - t0);
+  if (sisa > 0) await tidur(sisa);
   const berkasTrace = rekam ? await hentikanTrace(s, 'S0') : null;
+  await tungguKeadaan((k) => k.t > t0 + 11000, 60000);
+  const m = hitungMetrik(t0, t0 + 10000);
   const semua = [...gambar.values()];
-  const mulaiPertama = Math.min(...semua.map((g) => g.mulai));
   const hasil = {
-    cls: ringkas ? ringkas.cls : null,
+    cls: m.cls,
+    longTaskTerlama: m.longTaskTerlama,
     permintaanGambar10dtk: semua.length,
     gambarSelesai10dtk: semua.filter((g) => g.selesai).length,
-    longTaskTerlama: ringkas ? ringkas.longTaskTerlama : null,
   };
   if (TUNGGU_GAMBAR_PENUH) {
-    for (let i = 0; i < 400 && semua.some((g) => !g.selesai); i++) await tidur(500);
-    const semuaAkhir = [...gambar.values()];
-    hasil.permintaanGambarTotal = semuaAkhir.length;
-    hasil.gambarTerakhirSelesaiDtk = Math.round((Math.max(...semuaAkhir.map((g) => g.selesai || 0)) - mulaiPertama) * 10) / 10;
+    const mulaiPertama = Math.min(...semua.map((g) => g.mulai));
+    for (let i = 0; i < 600 && [...gambar.values()].some((g) => !g.selesai); i++) await tidur(500);
+    const akhir = [...gambar.values()];
+    hasil.permintaanGambarTotal = akhir.length;
+    hasil.gambarTerakhirSelesaiDtk = Math.round((Math.max(...akhir.map((g) => g.selesai || 0)) - mulaiPertama) * 10) / 10;
   }
-  s.off('Network.requestWillBeSent'); s.off('Network.loadingFinished'); s.off('Page.frameStartedLoading');
-  void awal; void t0;
+  s.off('Network.requestWillBeSent'); s.off('Network.loadingFinished');
+  await s.kirim('Network.disable');
   return { hasil, berkasTrace };
 }
 
 async function siapkan(s, fn) {
   await muat(s);
+  await tidur(3000);
   if (fn) await fn();
   await tidur(800);
-  await resetUkur(s);
-  await tidur(300);
 }
 
 async function jalankan(s, nama, rekam, badan) {
   const m0 = await metrikPerforma(s);
   if (rekam) await mulaiTrace(s, nama === 'S4');
+  const t0 = Date.now();
   const ekstra = await badan();
-  await tidur(nama === 'S4' ? 500 : 2500);
+  const t1 = Date.now();
+  await tidur(1500);
+  // entri dari halaman bisa terlambat bila main thread sibuk; tunggu laporan yang dibuat setelah skenario selesai
+  await tungguKeadaan((k) => k.t > t1 + 1000, 60000);
   const berkasTrace = rekam ? await hentikanTrace(s, nama) : null;
-  const r = await nilai(s, 'window.AlatUkur.ringkas()');
   const perf = selisih(m0, await metrikPerforma(s));
-  return { hasil: { inp: r.inp, longTaskTerlama: r.longTaskTerlama, jumlahLongTask: r.jumlahLongTask, frameLambat: r.frameLambat, frameTerburuk: r.frameTerburuk, cls: r.cls, taskMs: perf.task, skripMs: perf.skrip, layoutMs: perf.layout, gayaMs: perf.gaya, jumlahLayout: perf.jumlahLayout, ...ekstra }, berkasTrace };
+  const m = hitungMetrik(t0, t1);
+  return { hasil: { ...m, taskMs: perf.task, skripMs: perf.skrip, layoutMs: perf.layout, gayaMs: perf.gaya, jumlahLayout: perf.jumlahLayout, durasiDtk: Math.round((t1 - t0) / 100) / 10, ...ekstra }, berkasTrace };
 }
 
+const keKisi = (s) => async () => {
+  await nilai(s, `window.scrollTo(0, document.querySelector('#kisi').getBoundingClientRect().top + scrollY - 90)`);
+  await tidur(1500);
+};
+
 const SKENARIO = {
-  S0: async (s, rekam) => { await muat(s); return S0(s, rekam); },
+  S0,
 
   S1: async (s, rekam) => {
     await siapkan(s);
     const c = await pusat(s, '#kolom-cari');
-    await klik(s, c.x, c.y); await tidur(600); await resetUkur(s);
+    await klik(s, c.x, c.y); await tidur(1500);
     return jalankan(s, 'S1', rekam, async () => {
       for (const h of 'sepatu') { ketik(s, h); await tidur(250); }
+      await tungguKeadaan((k) => k.cari === 'sepatu', 30000);
       await tidur(1500);
       for (let i = 0; i < 6; i++) { hapus(s); await tidur(250); }
+      await tungguKeadaan((k) => k.cari === '', 30000);
       await tidur(1500);
-      return { nilaiAkhir: await nilai(s, `document.querySelector('#kolom-cari').value`) };
+      return {};
     });
   },
 
   S2: async (s, rekam) => {
-    await siapkan(s, async () => { await nilai(s, `window.scrollTo(0, document.querySelector('#kisi').getBoundingClientRect().top + scrollY - 70)`); await tidur(1500); });
+    await siapkan(s, keKisi(s));
     const c = await pusat(s, '#kisi .kartu .tombol-tambah');
-    const sebelum = await nilai(s, `document.querySelector('#lencana-keranjang').textContent`);
+    const sebelum = Number(catatan.keadaan.keranjang);
     return jalankan(s, 'S2', rekam, async () => {
       await klik(s, c.x, c.y);
-      await tidur(1500);
-      return { lencanaSebelum: Number(sebelum), lencanaSesudah: Number(await nilai(s, `document.querySelector('#lencana-keranjang').textContent`)) };
+      await tungguKeadaan((k) => Number(k.keranjang) > sebelum, 20000);
+      await tidur(1000);
+      return { tambahanKeranjang: Number(catatan.keadaan.keranjang) - sebelum };
     });
   },
 
   S3: async (s, rekam) => {
     await fetch(ASAL + '/api/pesanan', { method: 'DELETE' });
-    await siapkan(s, async () => { await nilai(s, `window.scrollTo(0, document.querySelector('#kisi').getBoundingClientRect().top + scrollY - 70)`); await tidur(1500); });
+    await siapkan(s, keKisi(s));
     const c = await pusat(s, '#kisi .kartu .tombol-beli');
     return jalankan(s, 'S3', rekam, async () => {
-      for (let i = 0; i < 3; i++) { klikTanpaTunggu(s, c.x, c.y); await tidur(120); }
-      await tidur(4000);
+      for (let i = 0; i < 3; i++) { klikTanpaTunggu(s, c.x, c.y); await tidur(150); }
+      await tidur(5000);
       const pesanan = await (await fetch(ASAL + '/api/pesanan')).json();
-      return { jumlahPesanan: pesanan.length, lencanaPesanan: Number(await nilai(s, `document.querySelector('#lencana-pesanan').textContent`)) };
+      return { jumlahPesanan: pesanan.length };
     });
   },
 
@@ -220,23 +317,19 @@ const SKENARIO = {
     await siapkan(s);
     const tombol = await pusat(s, '#tombol-voucher');
     const cari = await pusat(s, '#kolom-cari');
-    // pencatat progres per frame: lebar yang benar-benar ada saat frame dibuat
-    await nilai(s, `(() => { window.__progres = { lebar: [], mulai: 0, selesai: 0 };
-      const isi = document.querySelector('#progres-isi'), wadah = document.querySelector('#progres');
-      const catat = () => { if (!wadah.hidden) { const l = isi.style.width; const a = window.__progres.lebar; if (a[a.length - 1] !== l) a.push(l); } requestAnimationFrame(catat); };
-      requestAnimationFrame(catat);
-      new MutationObserver(() => { if (wadah.hidden && window.__progres.mulai) window.__progres.selesai = performance.now(); }).observe(wadah, { attributes: true });
-      document.querySelector('#tombol-voucher').addEventListener('click', () => { window.__progres.mulai = performance.now(); }, { capture: true });
-    })()`);
     return jalankan(s, 'S4', rekam, async () => {
+      const mulai = Date.now();
       await klik(s, tombol.x, tombol.y);
       await tidur(300);
       klikTanpaTunggu(s, cari.x, cari.y);
       for (const h of 'sepatu') { await tidur(200); ketik(s, h); }
-      for (let i = 0; i < 120; i++) { await tidur(500); if (await nilai(s, 'window.__progres.selesai > 0')) break; }
-      await tidur(2000);
-      const p = await nilai(s, 'window.__progres');
-      return { framePenampilProgres: p.lebar.length, durasiVoucherMs: Math.round(p.selesai - p.mulai), nilaiCari: await nilai(s, `document.querySelector('#kolom-cari').value`), jumlahHargaVoucher: await nilai(s, `document.querySelectorAll('.harga-voucher').length`) };
+      // selesai ditandai toast "Voucher ... dipakai"; progres awal bisa tidak pernah tergambar, jadi tidak bisa dipakai sebagai penanda
+      const k = await tungguKeadaan((x) => /^Voucher /.test(x.toast || ''), 90000);
+      const selesaiPada = k && /^Voucher /.test(k.toast || '') ? k.t : null;
+      await tungguKeadaan((x) => x.cari === 'sepatu', 20000);
+      await tidur(1500);
+      const pg = catatan.entri.filter((e) => e.k === 'pg' && e.t >= mulai);
+      return { framePenampilProgres: pg.length, durasiVoucherMs: selesaiPada ? selesaiPada - mulai : null };
     });
   },
 
@@ -248,7 +341,8 @@ const SKENARIO = {
         s.kirim('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 206, y: 600, deltaX: 0, deltaY: 90 });
         await tidur(50);
       }
-      return { posisiGulir: await nilai(s, 'Math.round(scrollY)') };
+      await tidur(300);
+      return { posisiGulir: catatan.keadaan.y };
     });
   },
 
@@ -272,21 +366,36 @@ async function utama() {
     try { target = (await (await fetch(`http://127.0.0.1:${PORT_DEBUG}/json/list`)).json()).find((t) => t.type === 'page'); } catch { /* chrome belum siap */ }
   }
   const versi = await (await fetch(`http://127.0.0.1:${PORT_DEBUG}/json/version`)).json();
-  if (process.env.DEBUG) console.log('target', target && target.webSocketDebuggerUrl);
-  const s = new Sesi(target.webSocketDebuggerUrl);
-  await s.siap;
-  for (const d of ['Page', 'Runtime', 'Network', 'Performance']) await s.kirim(d + '.enable');
-  await s.kirim('Emulation.setDeviceMetricsOverride', { width: 412, height: 915, deviceScaleFactor: 1, mobile: true });
-  await s.kirim('Emulation.setCPUThrottlingRate', { rate: Number(process.env.CPU || 4) });
+  const peramban = new Sesi(versi.webSocketDebuggerUrl);
+  await peramban.siap;
 
-  // pemuatan pertama menulis data contoh ke localStorage, lalu dimuat ulang sekali (protokol langkah 4)
-  await muat(s);
+  // tiap putaran memakai tab baru; renderer yang dipakai ulang untuk banyak navigasi ternyata makin lambat dari putaran ke putaran
+  let tabLama = null;
+  async function tabBaru() {
+    if (tabLama) { tabLama.s.ws.close(); await peramban.kirim('Target.closeTarget', { targetId: tabLama.id }); await tidur(1000); }
+    const { targetId } = await peramban.kirim('Target.createTarget', { url: 'about:blank' });
+    const s = new Sesi(`ws://127.0.0.1:${PORT_DEBUG}/devtools/page/${targetId}`);
+    await s.siap;
+    s.on('Runtime.bindingCalled', terimaLaporan);
+    for (const d of ['Page', 'Runtime', 'Performance']) await s.kirim(d + '.enable');
+    await s.kirim('Runtime.addBinding', { name: '__lapor' });
+    await s.kirim('Page.addScriptToEvaluateOnNewDocument', { source: SKRIP_HALAMAN });
+    await s.kirim('Emulation.setDeviceMetricsOverride', { width: 412, height: 915, deviceScaleFactor: 1, mobile: true });
+    await s.kirim('Emulation.setCPUThrottlingRate', { rate: CPU });
+    await s.kirim('Page.bringToFront');
+    tabLama = { s, id: targetId };
+    return s;
+  }
 
-  const laporan = { label, waktu: new Date().toISOString(), chrome: versi.Browser, cpu: os.cpus()[0].model, inti: os.cpus().length, ramGB: Math.round(os.totalmem() / 2 ** 30), throttling: '4x', viewport: '412x915', ulang: ULANG, skenario: {} };
+  // pemuatan pertama menulis data contoh ke localStorage; semua skenario memakai pemuatan sesudahnya (protokol langkah 4)
+  await muat(await tabBaru());
+  await tidur(3000);
+
+  const laporan = { label, waktu: new Date().toISOString(), chrome: versi.Browser, cpu: os.cpus()[0].model.trim(), inti: os.cpus().length, ramGB: Math.round(os.totalmem() / 2 ** 30), throttlingCPU: CPU + 'x', viewport: '412x915', ulang: ULANG, skenario: {} };
   for (const nama of PILIHAN) {
     const putaran = [];
     for (let i = 0; i < ULANG; i++) {
-      const { hasil } = await SKENARIO[nama](s, false);
+      const { hasil } = await SKENARIO[nama](await tabBaru(), false);
       putaran.push(hasil);
       console.log(label, nama, 'putaran', i + 1, JSON.stringify(hasil));
     }
@@ -294,8 +403,9 @@ async function utama() {
     const med = Object.fromEntries(kunci.map((k) => [k, median(putaran.map((p) => p[k]))]));
     laporan.skenario[nama] = { median: med, putaran };
     if (DENGAN_TRACE) {
-      const { berkasTrace } = await SKENARIO[nama](s, true);
+      const { hasil, berkasTrace } = await SKENARIO[nama](await tabBaru(), true);
       laporan.skenario[nama].trace = berkasTrace;
+      laporan.skenario[nama].hasilSaatTrace = hasil;
       console.log(label, nama, 'trace', berkasTrace);
     }
   }
@@ -306,9 +416,9 @@ async function utama() {
   if (fs.existsSync(berkas)) lama = JSON.parse(fs.readFileSync(berkas, 'utf8'));
   laporan.skenario = { ...(lama.skenario || {}), ...laporan.skenario };
   fs.writeFileSync(berkas, JSON.stringify(laporan, null, 2));
-  console.log('tersimpan', berkas);
+  console.log('tersimpan', path.relative(process.cwd(), berkas));
 
-  s.ws.close();
+  peramban.ws.close();
   chrome.kill();
   process.exit(0);
 }
