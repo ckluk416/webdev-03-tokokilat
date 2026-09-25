@@ -47,7 +47,7 @@ baseline per skenario (median 3 kali, 1x, 3.000 produk):
 
 tiket terkait: TK-1044 (skenario S2)
 
-tanggal dan hash commit entri ini: 25-09-2026, ....
+tanggal dan hash commit entri ini: 25-09-2026, 2798f18
 
 ### sebelum perbaikan
 
@@ -65,10 +65,10 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 ### sesudah perbaikan
 
-- hash commit perbaikan: ....
-- hasil ukur (median 3 kali): ....
-- prediksi vs kenyataan: ....
-- efek samping yang muncul: ....
+- hash commit perbaikan: 6bbe20f
+- hasil ukur (median 3 kali): pada 1x di commit 6bbe20f (laporan/hasil/p01-1x.json), INP S2 turun dari 200 ms menjadi 112 ms dan long task terlama dari 146 ms menjadi 100 ms. di trace sesudah-awal-1x-s2 (setelah P-01 sampai P-10), dispatch event click hanya 1,1 ms; pencatatan riwayat dan Lacak.kirim berjalan di task susulan (masing-masing sekitar 11 ms dan 12 ms).
+- prediksi vs kenyataan: tepat. INP 112 ms masuk rentang prediksi 100 sampai 150 ms, dan JavaScript di task klik turun ke sekitar 1 ms, lebih rendah dari prediksi 10 ms. setelah P-08, INP S2 turun ke 40 ms (laporan/hasil/p08-1x.json), sesuai prediksi di bawah 100 ms.
+- efek samping yang muncul: tidak terlihat di pengukuran. risiko kehilangan riwayat bila proses browser dimatikan sebelum idle tetap ada dan belum diuji.
 
 ---
 
@@ -76,7 +76,7 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 tiket terkait: TK-1052 (skenario S3)
 
-tanggal dan hash commit entri ini: 25-09-2026, ....
+tanggal dan hash commit entri ini: 25-09-2026, 2798f18
 
 ### sebelum perbaikan
 
@@ -95,10 +95,10 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 ### sesudah perbaikan
 
-- hash commit perbaikan: ....
-- hasil ukur (median 3 kali): ....
-- prediksi vs kenyataan: ....
-- efek samping yang muncul: ....
+- hash commit perbaikan: 82b4531, dengan lanjutan 4035e7c
+- hasil ukur (median 3 kali): pada 1x di commit 82b4531 (laporan/hasil/p02-1x.json), pesanan dari tiga klik cepat turun dari 3 menjadi 1 di ketiga putaran, dan INP S3 turun dari 288 ms menjadi 160 ms.
+- prediksi vs kenyataan: sebagian. jumlah pesanan tepat 1 sesuai prediksi. INP 160 ms sedikit di atas rentang 100 sampai 150 ms; dugaan saya karena timer promo.js masih memenuhi main thread, sebab setelah P-08 INP S3 turun ke 16 ms (laporan/hasil/sesudah-awal-1x.json).
+- efek samping yang muncul: ada efek samping yang tidak diprediksi. di uji click-through (laporan/bench/periksa-fungsi.js), klik yang datang setelah pesanan pertama selesai (sekitar 350 ms) tetap menjadi pesanan kedua, karena penjaga dilepas saat tombol masih bertuliskan "Dipesan". commit 4035e7c menahan penjaga sampai tanda itu hilang (1,5 detik), dan uji yang sama kembali menghasilkan 1 pesanan.
 
 ---
 
@@ -106,7 +106,7 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 tiket terkait: TK-1057 (skenario S4)
 
-tanggal dan hash commit entri ini: 25-09-2026, ....
+tanggal dan hash commit entri ini: 25-09-2026, 2798f18
 
 ### sebelum perbaikan
 
@@ -124,10 +124,10 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 ### sesudah perbaikan
 
-- hash commit perbaikan: ....
-- hasil ukur (median 3 kali): ....
-- prediksi vs kenyataan: ....
-- efek samping yang muncul: ....
+- hash commit perbaikan: 91ebf66
+- hasil ukur (median 3 kali): pada 1x di commit 91ebf66 (laporan/hasil/p03-1x.json), frame yang menampilkan progres naik dari 0 menjadi 1, waktu sampai toast turun dari 8.943 ms menjadi 6.547 ms, tetapi INP S4 naik dari 4.336 ms menjadi 5.504 ms dan long task terlama tetap 3.474 ms. setelah P-05 (laporan/hasil/p05-1x.json), progres tampil di 5 frame, toast muncul 1.656 ms setelah klik, INP S4 72 ms, dan long task terlama 52 ms.
+- prediksi vs kenyataan: sebagian meleset. prediksi paling sedikit 5 frame progres baru tercapai setelah P-05. yang terlewat di model mental saya: perhitungan tinggal sekitar 40 ms, sedangkan main thread masih penuh oleh render kisi dari ketikan (2 sampai 3 detik per render) dan timer promo.js, jadi hampir tidak ada rendering opportunity yang jatuh di tengah perhitungan. INP justru naik; dugaan saya ketikan kini sempat diproses di sela perhitungan, sehingga render kisi dari ketikan dan render akhir voucher berurutan dalam satu interaksi. dugaan ini belum saya buktikan dengan trace di commit tersebut.
+- efek samping yang muncul: tidak ada yang teramati selain kenaikan INP di atas, yang hilang setelah P-05.
 
 ---
 
@@ -135,7 +135,7 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 tiket terkait: TK-1041 (S1), juga TK-1057 (render akhir S4)
 
-tanggal dan hash commit entri ini: 25-09-2026, ....
+tanggal dan hash commit entri ini: 25-09-2026, 2798f18
 
 ### sebelum perbaikan
 
@@ -147,10 +147,10 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 ### sesudah perbaikan
 
-- hash commit perbaikan: ....
-- hasil ukur (median 3 kali): ....
-- prediksi vs kenyataan: ....
-- efek samping yang muncul: ....
+- hash commit perbaikan: 929e693
+- hasil ukur (median 3 kali): pada 1x di commit 929e693 (laporan/hasil/p04-1x.json), INP S1 turun dari 6.032 ms menjadi 3.792 ms dan long task terlama dari 4.949 ms menjadi 3.178 ms. di trace sesudah-awal-1x-s1, formatRupiah tidak lagi muncul di daftar fungsi terberat.
+- prediksi vs kenyataan: meleset ke arah yang lebih baik. prediksi saya sekitar 100 ms per render penuh, kenyataannya INP turun sekitar 2,2 detik. dugaan saya pembuatan 4.335 objek Intl.NumberFormat per render juga membebani alokasi memori dan garbage collector, yang tidak terlihat di microbenchmark Node; dugaan ini belum saya verifikasi dengan trace di commit tersebut.
+- efek samping yang muncul: tidak ada. format harga tetap sama (dicek di uji click-through dan laporan/gambar/06-harga-voucher.png).
 
 ---
 
@@ -158,7 +158,7 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 tiket terkait: TK-1041 (S1), TK-1057 (render akhir S4), TK-1081 (permintaan gambar ulang)
 
-tanggal dan hash commit entri ini: 25-09-2026, ....
+tanggal dan hash commit entri ini: 25-09-2026, 2798f18
 
 ### sebelum perbaikan
 
@@ -181,10 +181,10 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 ### sesudah perbaikan
 
-- hash commit perbaikan: ....
-- hasil ukur (median 3 kali): ....
-- prediksi vs kenyataan: ....
-- efek samping yang muncul: ....
+- hash commit perbaikan: 2d0b31b, dengan lanjutan 29f95e0 dan aee6dcf (lihat P-11)
+- hasil ukur (median 3 kali): pada 1x di commit 2d0b31b (laporan/hasil/p05-1x.json), INP S1 turun dari 3.792 ms menjadi 80 ms dan long task terlama dari 3.178 ms menjadi 58 ms; INP S4 72 ms dan long task terlama S4 52 ms. di trace sesudah-awal-1x-s1, samakanTinggiJudul tidak ada lagi, dan layout paksa tinggal 35 kali dengan total 10 ms (sebelumnya 365 kali, 5.446 ms).
+- prediksi vs kenyataan: tepat untuk 1x: INP S1 di bawah 200 ms dan long task di bawah 100 ms. prediksi layout paksa menjadi 0 meleset kecil; dugaan saya sisa 35 layout itu berasal dari perbaruiTampilan di gulir.js yang membaca scrollHeight setelah kisi bertambah.
+- efek samping yang muncul: ada satu efek samping penting yang tidak diprediksi: subgrid mengikat baris semua kartu, sehingga perubahan teks di satu kartu memaksa layout seluruh kisi. pada 1x tidak terasa, tetapi pada 4x menjadi long task, jadi subgrid diganti di P-11. efek lain sesuai prediksi: bar progres baca mengikuti kisi yang sudah dirender. perilaku Ctrl+F untuk produk yang belum dirender belum saya uji.
 
 ---
 
@@ -192,7 +192,7 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 tiket terkait: TK-1041 (S1)
 
-tanggal dan hash commit entri ini: 25-09-2026, ....
+tanggal dan hash commit entri ini: 25-09-2026, 2798f18
 
 ### sebelum perbaikan
 
@@ -209,10 +209,10 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 ### sesudah perbaikan
 
-- hash commit perbaikan: ....
-- hasil ukur (median 3 kali): ....
-- prediksi vs kenyataan: ....
-- efek samping yang muncul: ....
+- hash commit perbaikan: 9dd1ac8, dengan lanjutan 7f50574 (lihat P-11)
+- hasil ukur (median 3 kali): pada 1x di commit 9dd1ac8 (laporan/hasil/p06-1x.json), INP S1 turun dari 80 ms menjadi 24 ms, long task terlama dari 58 ms menjadi 0, dan frame lebih dari 50 ms dari 2 menjadi 0.
+- prediksi vs kenyataan: sebagian. INP di bawah 200 ms tercapai. jumlah render tidak turun ke 2 sampai 4: skenario S1 mengetik dengan jeda 250 ms per huruf, lebih panjang dari debounce 150 ms, jadi setiap huruf tetap memicu render. prediksi saya lupa membandingkan jeda debounce dengan jeda ketik di skenario. karena itu SDK juga tetap dipanggil per huruf, yang kemudian diperbaiki di P-11 dengan menunda event search sampai kata kunci stabil 1 detik.
+- efek samping yang muncul: hasil pencarian muncul 150 ms setelah berhenti mengetik; tidak mengganggu di uji click-through.
 
 ---
 
@@ -220,7 +220,7 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 tiket terkait: TK-1063 (S5), juga guliran yang tertahan di TK-1057
 
-tanggal dan hash commit entri ini: 25-09-2026, ....
+tanggal dan hash commit entri ini: 25-09-2026, 2798f18
 
 ### sebelum perbaikan
 
@@ -243,10 +243,10 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 ### sesudah perbaikan
 
-- hash commit perbaikan: ....
-- hasil ukur (median 3 kali): ....
-- prediksi vs kenyataan: ....
-- efek samping yang muncul: ....
+- hash commit perbaikan: 9f5c415, dengan lanjutan 937d811
+- hasil ukur (median 3 kali): pada 1x di commit 9f5c415 (laporan/hasil/p07-1x.json), frame lebih dari 50 ms di S5 turun dari 28 menjadi 0 per 10 detik, dan long task terlama dari 346 ms menjadi 0. di trace sesudah-awal-1x-s5, periksaGulir tidak ada lagi; perbaruiTampilan memakan 230 ms total selama 10 detik (sebelumnya periksaGulir 3.967 ms).
+- prediksi vs kenyataan: meleset ke arah yang lebih baik: frame lambat S5 sudah 0 sebelum P-08, padahal prediksi menunggu P-08. dugaan saya P-05 membuat DOM jauh lebih kecil (puluhan kartu, bukan 3.000), sehingga layout paksa dari timer promo.js ikut menjadi murah. layout paksa dari gulir.js tidak 0 (127 kali, 98 ms total), karena perbaruiTampilan membaca scrollHeight setiap kali ResizeObserver melaporkan kisi bertambah.
+- efek samping yang muncul: uji click-through menemukan masalah yang sudah ada sejak kode awal: tombol "Ke atas" disembunyikan begitu halaman kembali ke atas, sehingga fokus keyboard jatuh ke body. commit 937d811 memindahkan fokus ke logo. hilangnya efek pantul di puncak halaman akibat overscroll-behavior belum diuji di perangkat Android sungguhan.
 
 ---
 
@@ -254,7 +254,7 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 tiket terkait: TK-1070 (S6), juga TK-1063 (S5)
 
-tanggal dan hash commit entri ini: 25-09-2026, ....
+tanggal dan hash commit entri ini: 25-09-2026, 2798f18
 
 ### sebelum perbaikan
 
@@ -275,10 +275,10 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 ### sesudah perbaikan
 
-- hash commit perbaikan: ....
-- hasil ukur (median 3 kali): ....
-- prediksi vs kenyataan: ....
-- efek samping yang muncul: ....
+- hash commit perbaikan: a0bb921, dengan lanjutan eaa1338 dan a2666e1
+- hasil ukur (median 3 kali): pada 1x di commit a0bb921 (laporan/hasil/p08-1x.json), frame lebih dari 50 ms di S6 turun dari 56 menjadi 0, di S5 0, dan INP S2 40 ms. di trace sesudah-awal-1x-s6, callback timer dari promo.js 0; TimerFire yang tersisa (59 dalam 11,7 detik) berasal dari ukur.js dan harness. main thread S6 masih sibuk 37%. setelah eaa1338 dan a2666e1, TaskDuration S6 turun dari 3.545 ms menjadi 1.403 ms per jendela (laporan/hasil/sesudah-1x.json).
+- prediksi vs kenyataan: sebagian meleset. frame lambat dan timer promo.js tepat, tetapi waktu sibuk 37% jauh di atas prediksi 20%. setelah dicek, sebagian besar sisa itu berasal dari alat ukur: tanpa ?ukur=1 halaman diam hanya memakai sekitar 55 ms per 5 detik (sekitar 1%) pada 1x, sedangkan dengan ?ukur=1 1.217 ms per 5 detik. requestAnimationFrame di ukur.js memaksa main thread membuat frame di setiap vsync, dan di setiap frame style semua animasi ikut diperbarui. dua langkah lanjutan diambil sesuai alternatif yang sudah dicatat: angka perseratus detik dipindah ke strip CSS (eaa1338) dan animasi lencana di luar layar dijeda (a2666e1). dengan ?ukur=1 bebannya turun ke 594 ms per 5 detik pada 1x, dan dari 4.963 ms ke 2.300 ms per 5 detik pada 4x.
+- efek samping yang muncul: angka perseratus detik kini digerakkan CSS dan disamakan dengan waktu sekali per detik; hasil cek selisihnya paling banyak 1 perseratus detik (uji click-through). strip itu diberi aria-hidden supaya pembaca layar tidak membacakan 100 angka. versi pertama strip menampilkan potongan angka sebelumnya karena overflow memotong di tepi padding, dan sudah diperbaiki sebelum commit. animasi lencana kini hanya berjalan saat kartunya di layar.
 
 ---
 
@@ -286,7 +286,7 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 tiket terkait: TK-1078 (S0)
 
-tanggal dan hash commit entri ini: 25-09-2026, ....
+tanggal dan hash commit entri ini: 25-09-2026, 2798f18
 
 ### sebelum perbaikan
 
@@ -306,10 +306,10 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 ### sesudah perbaikan
 
-- hash commit perbaikan: ....
-- hasil ukur (median 3 kali): ....
-- prediksi vs kenyataan: ....
-- efek samping yang muncul: ....
+- hash commit perbaikan: 1066133, dengan lanjutan 8e58818
+- hasil ukur (median 3 kali): pada 1x di commit 1066133 (laporan/hasil/p09-1x.json), CLS S0 turun dari 0,137 menjadi 0,032. setelah 8e58818 (tinggi tempat banner per breakpoint), CLS 0 di ketiga putaran (laporan/hasil/sesudah-1x.json).
+- prediksi vs kenyataan: tepat. 0,032 di bawah 0,05, dan sisanya berasal dari selisih tinggi tempat banner (132 px) dengan banner terisi (202 px pada lebar 412 px), persis sumber sisa yang diprediksi. tinggi minimum kemudian diukur di 24 lebar layar dari 320 sampai 1.280 px, dan di semua lebar itu tinggi sebelum dan sesudah banner terisi sama.
+- efek samping yang muncul: area "Memuat promo 12.12…" tampil sekitar 1,8 detik (laporan/gambar/01-banner-memuat.png).
 
 ---
 
@@ -317,7 +317,7 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 tiket terkait: TK-1081 (S0)
 
-tanggal dan hash commit entri ini: 25-09-2026, ....
+tanggal dan hash commit entri ini: 25-09-2026, 2798f18
 
 ### sebelum perbaikan
 
@@ -334,10 +334,10 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 ### sesudah perbaikan
 
-- hash commit perbaikan: ....
-- hasil ukur (median 3 kali): ....
-- prediksi vs kenyataan: ....
-- efek samping yang muncul: ....
+- hash commit perbaikan: d72825e, dengan lanjutan c421743
+- hasil ukur (median 3 kali): pada 1x di commit d72825e (laporan/hasil/p10-1x.json), permintaan gambar dalam 10 detik pertama turun dari 3.000 menjadi 40, dan semuanya selesai dalam 1,5 detik. setelah c421743, permintaan turun lagi menjadi 8 dan selesai dalam 0,4 detik (laporan/hasil/sesudah-1x.json).
+- prediksi vs kenyataan: meleset di commit d72825e: angka 40 sama persis dengan commit P-09 (1066133), jadi lazy loading belum berpengaruh dan penurunan ke 40 berasal dari render bertahap P-05. penyebabnya urutan atribut: src diisi sebelum loading = 'lazy', sehingga browser sudah memutuskan memuat gambar sebelum tahu gambar itu lazy. setelah urutannya dibalik (c421743), permintaan turun ke 8, sesuai prediksi di bawah 60.
+- efek samping yang muncul: saat digulir, gambar diminta ketika mendekati layar; di uji click-through, 95 gambar diminta setelah 80 kartu dirender.
 
 ---
 
@@ -345,7 +345,7 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 tiket terkait: TK-1041 (S1), TK-1044 (S2), TK-1057 (S4), TK-1063 (S5), TK-1070 (S6)
 
-tanggal dan hash commit entri ini: 25-09-2026, ....
+tanggal dan hash commit entri ini: 25-09-2026, 51766d2
 
 ### sebelum perbaikan
 
@@ -379,7 +379,7 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 
 tiket terkait: TK-1044 (S2)
 
-tanggal dan hash commit entri ini: 25-09-2026, ....
+tanggal dan hash commit entri ini: 25-09-2026, d24d6ba
 
 ### sebelum perbaikan
 
