@@ -7,7 +7,7 @@
   {
     "kontrol": "hitung mundur",
     "lolos": true,
-    "bukti": "perseratus tampil 89 lalu 51 (seharusnya 90 dan 52), detik 53, jam 04"
+    "bukti": "perseratus tampil 71 lalu 33 (seharusnya 70 dan 32), detik 33, jam 02"
   },
   {
     "kontrol": "teks berjalan dan lencana kilat",
@@ -52,17 +52,17 @@
   {
     "kontrol": "tombol \"Pakai voucher\" KILAT1212",
     "lolos": true,
-    "bukti": "Voucher KILAT1212 dipakai di 2.264 produk.; progres tampil di 7 frame; 8 kartu terender menampilkan harga voucher"
+    "bukti": "Voucher KILAT1212 dipakai di 2.264 produk.; progres tampil di 8 frame; 8 kartu terender menampilkan harga voucher"
   },
   {
     "kontrol": "tombol \"+ Keranjang\"",
     "lolos": true,
-    "bukti": "lencana 0 -> 1, tombol \"Ditambahkan ✓\", toast \"Ditambahkan ke keranjang: Garda Teh Hijau Celup Bisa COD\""
+    "bukti": "lencana 0 -> 1, tombol \"Ditambahkan\", toast \"Ditambahkan ke keranjang: Garda Teh Hijau Celup Bisa COD\""
   },
   {
     "kontrol": "tombol \"Beli sekarang\" 3 klik cepat",
     "lolos": true,
-    "bukti": "1 pesanan di server; keadaan tombol: Memproses pesanan [aria-busy=true] -> Dipesan ✓ [aria-busy=null] -> Beli sekarang [aria-busy=null]; lencana pesanan 1"
+    "bukti": "1 pesanan di server; keadaan tombol: Memproses pesanan [aria-busy=true] -> Dipesan [aria-busy=null] -> Beli sekarang [aria-busy=null]; lencana pesanan 1"
   },
   {
     "kontrol": "tombol \"Pesanan\"",
@@ -112,7 +112,7 @@
   {
     "kontrol": "semua produk terjangkau dengan menggulir",
     "lolos": true,
-    "bukti": "3000 kartu setelah digulir sampai bawah (170.6 detik); kaki: 5 merek, 8 kategori terkait"
+    "bukti": "3000 kartu setelah digulir sampai bawah (21.8 detik); kaki: 5 merek, 8 kategori terkait"
   },
   {
     "kontrol": "fokus keyboard terlihat",
