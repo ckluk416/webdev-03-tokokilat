@@ -27,6 +27,8 @@ async function buka({ lebar = 412, tinggi = 915, cpu = 1, mobile = true, skala =
   const ketik = async (teks) => { for (const h of teks) { await kirim('Input.insertText', { text: h }); await tidur(80); } };
   const foto = async (berkas, opsi = {}) => { const r = await kirim('Page.captureScreenshot', { format: 'png', ...opsi }); fs.mkdirSync(path.dirname(berkas), { recursive: true }); fs.writeFileSync(berkas, Buffer.from(r.data, 'base64')); return berkas; };
   const tutup = () => { ws.close(); chrome.kill(); };
-  return { kirim, nilai, pusat, klik, tombol, ketik, foto, tutup, galat, tidur };
+  const dengar = (fn) => pendengar.push(fn);
+  const berhentiDengar = (fn) => { const i = pendengar.indexOf(fn); if (i >= 0) pendengar.splice(i, 1); };
+  return { kirim, nilai, pusat, klik, tombol, ketik, foto, tutup, galat, tidur, dengar, berhentiDengar };
 }
 module.exports = { buka, tidur };
