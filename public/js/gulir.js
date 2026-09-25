@@ -17,8 +17,10 @@ function kirimImpresi() {
 // IntersectionObserver menghitung perpotongan di luar task gulir, tanpa getBoundingClientRect per kartu.
 const pengamatKartu = new IntersectionObserver((entri) => {
   for (const e of entri) {
-    if (!e.isIntersecting) continue;
     const kartu = e.target;
+    // penanda di-layar dipakai CSS untuk menjeda animasi lencana kilat di kartu yang sedang tidak terlihat
+    kartu.classList.toggle('di-layar', e.isIntersecting);
+    if (!e.isIntersecting) continue;
     kartu.classList.add('terlihat');
     if (!sudahTercatat.has(kartu.dataset.id)) {
       sudahTercatat.add(kartu.dataset.id);

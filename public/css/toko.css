@@ -119,6 +119,9 @@ button { cursor: pointer; }
 /* Gerak naik turun dan cincin denyut hanya memakai transform dan opacity, jadi dijalankan compositor.
    Sebelumnya top dan box-shadow yang dianimasikan, sehingga tiap frame perlu layout dan paint. */
 .lencana-kilat::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--kilat); animation: denyut-cincin .9s ease-in-out infinite; }
+/* animasi hanya berjalan di kartu yang sedang di layar; setiap animasi aktif ikut dihitung ulang style-nya
+   di tiap frame yang dibuat main thread, termasuk frame yang dipicu requestAnimationFrame alat ukur */
+.kartu:not(.di-layar) .lencana-kilat, .kartu:not(.di-layar) .lencana-kilat::after { animation-play-state: paused; }
 @keyframes denyut {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
