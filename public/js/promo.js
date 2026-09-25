@@ -58,11 +58,20 @@ function pasangTeksBerjalan() {
   }, { passive: true });
 }
 
+// Tempat banner sudah ada di HTML dengan tinggi yang dicadangkan, jadi isinya datang tanpa menggeser kisi.
 async function pasangBannerPromo() {
-  const respons = await fetch('/api/promo');
-  const promo = await respons.json();
+  const banner = $('#promo-banner');
+  let promo;
+  try {
+    const respons = await fetch('/api/promo');
+    if (!respons.ok) throw new Error('status ' + respons.status);
+    promo = await respons.json();
+  } catch {
+    banner.replaceChildren(el('p', 'promo-memuat', 'Info promo belum bisa dimuat. Voucher KILAT1212 tetap bisa dipakai di kolom voucher.'));
+    banner.removeAttribute('aria-busy');
+    return;
+  }
 
-  const banner = el('section', 'promo-banner');
   const teks = el('div');
   teks.append(el('h2', '', promo.judul), el('p', '', promo.isi));
   const tombol = el('button', '', promo.tombol);
@@ -71,9 +80,8 @@ async function pasangBannerPromo() {
     tampilkanToast('Syarat promo: berlaku 12 Desember, satu voucher per akun, tidak bisa digabung.');
     if (window.Lacak) window.Lacak.kirim('promo_click', { judul: promo.judul });
   });
-  banner.append(teks, tombol);
-
-  $('#utama').prepend(banner);
+  banner.replaceChildren(teks, tombol);
+  banner.removeAttribute('aria-busy');
 }
 
 export function pasangPromo() {
