@@ -111,7 +111,9 @@ export function tambahKeKeranjang(produk, tombol) {
 
   // Umpan balik lebih dulu. Riwayat dan analitik tidak terlihat pengguna, jadi dikerjakan setelah frame ini tergambar.
   perbaruiLencana(keranjang);
-  tombol.textContent = 'Ditambahkan ✓';
+  // tanpa tanda centang: glyph itu tidak ada di font sistem, dan pencarian font penggantinya saat ketukan pertama
+  // memakan sekitar 75 ms layout di ponsel lambat; latar hijau kelas .sudah sudah menandai keberhasilan
+  tombol.textContent = 'Ditambahkan';
   tombol.classList.add('sudah');
   setTimeout(() => {
     tombol.textContent = '+ Keranjang';
@@ -155,11 +157,11 @@ export async function beliSekarang(produk, tombol) {
     });
     if (!respons.ok) throw new Error('status ' + respons.status);
     const pesanan = await respons.json();
-    tombol.textContent = 'Dipesan ✓';
+    tombol.textContent = 'Dipesan';
     tombol.removeAttribute('aria-busy');
     tampilkanToast('Pesanan ' + pesanan.id + ' dibuat: ' + produk.nama);
     perbaruiLencanaPesanan();
-    // penjaga tetap aktif selama tanda "Dipesan ✓" tampil: ketukan beruntun yang datang tepat setelah
+    // penjaga tetap aktif selama tanda "Dipesan" tampil: ketukan beruntun yang datang tepat setelah
     // pesanan pertama selesai tidak ikut menjadi pesanan kedua
     setTimeout(() => lepaskan('Beli sekarang'), 1500);
   } catch {
