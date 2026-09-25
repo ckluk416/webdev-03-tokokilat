@@ -11,35 +11,51 @@ function akhirFlashSale() {
 
 const duaDigit = (n) => String(n).padStart(2, '0');
 
+// menulis teks hanya bila nilainya berubah; menulis nilai yang sama tetap membuat layout kotor
+function tulis(elemen, teks) {
+  if (elemen.textContent !== teks) elemen.textContent = teks;
+}
+
 function pasangHitungMundur() {
   const akhir = akhirFlashSale();
   const awal = Date.now();
-  const wadah = $('#hitung-mundur');
   const garis = $('#hm-garis');
   const jam = $('#hm-jam'), menit = $('#hm-menit'), detik = $('#hm-detik'), senti = $('#hm-senti');
 
-  // 10 ms supaya angka perseratus detik terlihat mulus
-  setInterval(() => {
+  // Sekali per frame, bukan setiap 10 ms: layar hanya menampilkan satu nilai per frame, dan
+  // requestAnimationFrame berhenti sendiri saat tab tidak terlihat.
+  const perbarui = () => {
     const sisa = Math.max(akhir - Date.now(), 0);
-    jam.textContent = duaDigit(Math.floor(sisa / 3600000));
-    menit.textContent = duaDigit(Math.floor((sisa % 3600000) / 60000));
-    detik.textContent = duaDigit(Math.floor((sisa % 60000) / 1000));
-    senti.textContent = duaDigit(Math.floor((sisa % 1000) / 10));
-
-    // garis di bawah angka menyusut mengikuti sisa waktu
-    const lebarPenuh = wadah.offsetWidth;
-    garis.style.width = Math.round(lebarPenuh * (sisa / (akhir - awal + 1))) + 'px';
-  }, 10);
+    tulis(jam, duaDigit(Math.floor(sisa / 3600000)));
+    tulis(menit, duaDigit(Math.floor((sisa % 3600000) / 60000)));
+    const detikBaru = duaDigit(Math.floor((sisa % 60000) / 1000));
+    if (detik.textContent !== detikBaru) {
+      detik.textContent = detikBaru;
+      // garis di bawah angka menyusut mengikuti sisa waktu; transform tidak perlu layout
+      garis.style.transform = 'scaleX(' + sisa / (akhir - awal + 1) + ')';
+    }
+    tulis(senti, duaDigit(Math.floor((sisa % 1000) / 10)));
+    if (sisa > 0) requestAnimationFrame(perbarui);
+  };
+  requestAnimationFrame(perbarui);
 }
 
+// Teks berjalan digerakkan animasi CSS pada transform, yang dijalankan compositor.
+// JavaScript hanya menghitung jarak dan durasi (kecepatan 100 px per detik, sama dengan sebelumnya).
 function pasangTeksBerjalan() {
   const teks = $('#berjalan-teks');
-  let x = teks.parentElement.offsetWidth;
-  setInterval(() => {
-    x -= 1;
-    if (x < -teks.offsetWidth) x = teks.parentElement.offsetWidth;
-    teks.style.left = x + 'px';
-  }, 10);
+  const atur = () => {
+    const lebarWadah = teks.parentElement.offsetWidth;
+    teks.style.setProperty('--mulai-berjalan', lebarWadah + 'px');
+    teks.style.animationDuration = (lebarWadah + teks.offsetWidth) / 100 + 's';
+  };
+  atur();
+  let dijadwalkan = false;
+  window.addEventListener('resize', () => {
+    if (dijadwalkan) return;
+    dijadwalkan = true;
+    requestAnimationFrame(() => { dijadwalkan = false; atur(); });
+  }, { passive: true });
 }
 
 async function pasangBannerPromo() {

@@ -45,12 +45,16 @@ button { cursor: pointer; }
 .kilat-judul p { margin: 6px 0 0; font-weight: 600; }
 .hitung-mundur { position: relative; display: flex; align-items: flex-start; gap: 10px; padding-bottom: 10px; }
 .angka { display: flex; flex-direction: column; align-items: center; }
-.angka span { font: italic 900 clamp(34px, 6vw, 64px)/1 var(--huruf-tegas); letter-spacing: -.04em; }
+.angka span { font: italic 900 clamp(34px, 6vw, 64px)/1 var(--huruf-tegas); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
 .angka.kecil span { font-size: clamp(20px, 3vw, 30px); color: var(--nila-2); padding-top: .55em; }
 .angka small { font-size: 12px; font-weight: 600; }
-.hm-garis { position: absolute; left: 0; bottom: 0; height: 5px; background: var(--tinta); }
+.hm-garis { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: var(--tinta); transform-origin: left; }
 .berjalan { position: relative; height: 34px; background: var(--nila-2); color: var(--putih); overflow: hidden; }
-.berjalan-teks { position: absolute; top: 7px; left: 100%; white-space: nowrap; font-size: 14px; font-weight: 600; }
+.berjalan-teks { position: absolute; top: 7px; left: 0; white-space: nowrap; font-size: 14px; font-weight: 600; transform: translateX(var(--mulai-berjalan, 100vw)); animation: berjalan 30s linear infinite; }
+@keyframes berjalan {
+  from { transform: translateX(var(--mulai-berjalan, 100vw)); }
+  to { transform: translateX(-100%); }
+}
 
 /* ---------- area utama ---------- */
 .utama { max-width: 1320px; margin: 0 auto; padding: 16px; }
@@ -102,9 +106,16 @@ button { cursor: pointer; }
 .tombol-beli[aria-busy="true"] { cursor: progress; }
 
 .lencana-kilat { position: absolute; top: 8px; left: 8px; z-index: 1; background: var(--kilat); color: var(--tinta); font-size: 11px; font-weight: 900; padding: 3px 8px; border-radius: 4px; animation: denyut .9s ease-in-out infinite; }
+/* Gerak naik turun dan cincin denyut hanya memakai transform dan opacity, jadi dijalankan compositor.
+   Sebelumnya top dan box-shadow yang dianimasikan, sehingga tiap frame perlu layout dan paint. */
+.lencana-kilat::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--kilat); animation: denyut-cincin .9s ease-in-out infinite; }
 @keyframes denyut {
-  0%, 100% { top: 8px; box-shadow: 0 0 0 0 rgba(255, 212, 0, .95); }
-  50% { top: 4px; box-shadow: 0 0 0 9px rgba(255, 212, 0, 0); }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes denyut-cincin {
+  0%, 100% { transform: scale(1); opacity: .95; }
+  50% { transform: scale(1.3, 1.9); opacity: 0; }
 }
 
 .kisi-sentinel { height: 1px; }
@@ -144,6 +155,7 @@ button { cursor: pointer; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .lencana-kilat { animation: none; }
+  .lencana-kilat, .lencana-kilat::after { animation: none; }
+  .berjalan-teks { animation: none; transform: none; }
   .kartu { transition: none; }
 }
