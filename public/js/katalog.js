@@ -2,7 +2,7 @@
 
 import { $, el, formatRupiah, formatRibuan, hargaSetelahDiskon } from './util.js';
 import { tambahKeKeranjang, beliSekarang } from './keranjang.js';
-import { periksaGulir } from './gulir.js';
+import { amatiKartu, periksaGulir } from './gulir.js';
 
 export const keadaan = {
   semuaProduk: [],
@@ -70,6 +70,7 @@ function buatKartu(produk) {
 
   kartu.append(media, badan);
   simpananKartu.set(produk.id, { kartu, harga, produk });
+  amatiKartu(kartu);
   return kartu;
 }
 

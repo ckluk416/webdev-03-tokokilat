@@ -14,7 +14,8 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+/* none mencegah pull to refresh tak sengaja di Chrome Android tanpa listener touchmove */
+html { scroll-behavior: smooth; overscroll-behavior-y: none; }
 body { margin: 0; font: 15px/1.45 var(--huruf); color: var(--tinta); background: var(--kabut); }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
@@ -35,7 +36,7 @@ button { cursor: pointer; }
 .tombol-kepala { background: transparent; border: 1.5px solid rgba(255, 255, 255, .45); color: var(--putih); padding: 8px 12px; border-radius: 8px; }
 .tombol-kepala:hover { border-color: var(--kilat); }
 .tombol-kepala b { display: inline-block; min-width: 22px; margin-left: 4px; padding: 0 6px; border-radius: 99px; background: var(--kilat); color: var(--tinta); text-align: center; }
-.bar-gulir { height: 3px; width: 0; background: var(--kilat); }
+.bar-gulir { height: 3px; background: var(--kilat); transform: scaleX(0); transform-origin: left; }
 
 /* ---------- strip flash sale ---------- */
 .kilat { background: var(--kilat); color: var(--tinta); overflow: hidden; }
@@ -79,8 +80,9 @@ button { cursor: pointer; }
 /* Tiap kartu memakai 6 baris kisi (gambar, judul, harga, 2 keterangan, tombol) lewat subgrid, sehingga
    judul dan harga dalam satu deret sejajar tanpa mengukur tinggi judul dari JavaScript. */
 .kisi { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); column-gap: 12px; row-gap: 0; }
-.kartu { position: relative; display: grid; grid-row: span 6; grid-template-rows: subgrid; row-gap: 6px; margin-bottom: 12px; background: var(--putih); border: 1px solid var(--garis); border-radius: 10px; overflow: hidden; opacity: 0; margin-top: 16px; transition: opacity .35s ease, margin-top .35s ease; }
-.kartu.terlihat { opacity: 1; margin-top: 0; }
+.kartu { position: relative; display: grid; grid-row: span 6; grid-template-rows: subgrid; row-gap: 6px; margin-bottom: 12px; background: var(--putih); border: 1px solid var(--garis); border-radius: 10px; overflow: hidden; opacity: 0; transform: translateY(16px); transition: opacity .35s ease, transform .35s ease; }
+/* efek muncul memakai opacity dan transform, yang bisa dikerjakan compositor tanpa layout ulang */
+.kartu.terlihat { opacity: 1; transform: none; }
 .kartu-media { display: block; background: var(--kabut); }
 .kartu-media img { display: block; width: 100%; height: auto; }
 .kartu-badan { display: contents; }
