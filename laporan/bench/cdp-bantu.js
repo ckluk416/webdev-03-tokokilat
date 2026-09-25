@@ -3,7 +3,7 @@ const { spawn } = require('child_process');
 const fs = require('fs'); const os = require('os'); const path = require('path');
 const tidur = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function buka({ lebar = 412, tinggi = 915, cpu = 1 } = {}) {
+async function buka({ lebar = 412, tinggi = 915, cpu = 1, mobile = true, skala = 2 } = {}) {
   const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'tokokilat-profil-'));
   const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe', ['--remote-debugging-port=9334', `--user-data-dir=${profil}`, '--no-first-run', '--no-default-browser-check', '--disable-extensions', '--remote-allow-origins=*', '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-background-timer-throttling', '--window-size=1400,1000', 'about:blank'], { stdio: 'ignore' });
   let target; for (let i = 0; i < 40 && !target; i++) { await tidur(250); try { target = (await (await fetch('http://127.0.0.1:9334/json/list')).json()).find((t) => t.type === 'page'); } catch {} }
@@ -18,7 +18,7 @@ async function buka({ lebar = 412, tinggi = 915, cpu = 1 } = {}) {
     if (p.method === 'Log.entryAdded' && p.params.entry.level === 'error') galat.push(p.params.entry.text + ' ' + (p.params.entry.url || ''));
   });
   for (const d of ['Page', 'Runtime', 'Log']) await kirim(d + '.enable');
-  await kirim('Emulation.setDeviceMetricsOverride', { width: lebar, height: tinggi, deviceScaleFactor: 2, mobile: true });
+  await kirim('Emulation.setDeviceMetricsOverride', { width: lebar, height: tinggi, deviceScaleFactor: skala, mobile });
   await kirim('Emulation.setCPUThrottlingRate', { rate: cpu });
   const nilai = async (e) => { const r = await kirim('Runtime.evaluate', { expression: e, awaitPromise: true, returnByValue: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.text + ' ' + (r.exceptionDetails.exception || {}).description); return r.result.value; };
   const pusat = (sel) => nilai(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null; e.scrollIntoView({ block: 'center', behavior: 'instant' }); const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);

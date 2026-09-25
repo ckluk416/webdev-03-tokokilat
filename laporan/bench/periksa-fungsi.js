@@ -31,8 +31,11 @@ const catat = (kontrol, lolos, bukti) => { hasil.push({ kontrol, lolos, bukti })
   await c.foto(path.join(DIR_GAMBAR, '02-halaman-412.png'));
 
   // hitung mundur dan animasi
-  const senti1 = await teks('#hm-senti'); await tidur(130); const senti2 = await teks('#hm-senti');
-  catat('hitung mundur', senti1 !== senti2, `angka perseratus detik berubah ${senti1} -> ${senti2}, jam ${await teks('#hm-jam')}`);
+  // angka perseratus detik berupa strip yang digeser animasi CSS; yang dibandingkan adalah angka yang tampil dengan sisa waktu sebenarnya
+  const bacaHitungMundur = `(() => { const s = document.querySelector('.senti-strip'); const m = new DOMMatrix(getComputedStyle(s).transform); const tampil = 99 - Math.round(-m.m42 / (s.getBoundingClientRect().height / 100)); const akhir = new Date(); akhir.setHours(24, 0, 0, 0); const sisa = akhir - Date.now(); return { tampil, seharusnya: Math.floor((sisa % 1000) / 10), detik: document.querySelector('#hm-detik').textContent, detikSeharusnya: String(Math.floor((sisa % 60000) / 1000)).padStart(2, '0') }; })()`;
+  const hm1 = await n(bacaHitungMundur); await tidur(370); const hm2 = await n(bacaHitungMundur);
+  const selisihSenti = (h) => Math.min(Math.abs(h.tampil - h.seharusnya), 100 - Math.abs(h.tampil - h.seharusnya));
+  catat('hitung mundur', hm1.tampil !== hm2.tampil && selisihSenti(hm1) <= 2 && selisihSenti(hm2) <= 2 && hm2.detik === hm2.detikSeharusnya, `perseratus tampil ${hm1.tampil} lalu ${hm2.tampil} (seharusnya ${hm1.seharusnya} dan ${hm2.seharusnya}), detik ${hm2.detik}, jam ${await teks('#hm-jam')}`);
   const anim = await n(`({ berjalan: document.querySelector('#berjalan-teks').getAnimations().map((a) => a.animationName), lencana: document.querySelectorAll('.lencana-kilat').length, animLencana: document.querySelector('.lencana-kilat') ? document.querySelector('.lencana-kilat').getAnimations({ subtree: true }).length : 0 })`);
   catat('teks berjalan dan lencana kilat', anim.berjalan.includes('berjalan') && anim.animLencana >= 2, `animasi teks: ${anim.berjalan.join(',')}; ${anim.lencana} lencana di DOM, ${anim.animLencana} animasi per lencana`);
 
