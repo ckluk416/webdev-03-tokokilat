@@ -78,6 +78,7 @@ button { cursor: pointer; }
 .promo-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: var(--nila); color: var(--putih); border-radius: 12px; padding: 22px 20px; margin-bottom: 16px; min-height: 132px; }
 .promo-banner h2 { margin: 0 0 4px; font: italic 900 22px/1.1 var(--huruf-tegas); }
 .promo-banner p { margin: 0; max-width: 60ch; }
+.promo-memuat { opacity: .85; }
 .promo-banner button { border: 0; border-radius: 8px; padding: 12px 18px; background: var(--kilat); color: var(--tinta); font-weight: 800; }
 
 /* ---------- kisi produk ---------- */
