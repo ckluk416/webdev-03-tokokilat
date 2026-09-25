@@ -338,3 +338,37 @@ tanggal dan hash commit entri ini: 25-09-2026, ....
 - hasil ukur (median 3 kali): ....
 - prediksi vs kenyataan: ....
 - efek samping yang muncul: ....
+
+---
+
+## P-11: sisa long task pada 4x setelah P-01 sampai P-10
+
+tiket terkait: TK-1041 (S1), TK-1044 (S2), TK-1057 (S4), TK-1063 (S5), TK-1070 (S6)
+
+tanggal dan hash commit entri ini: 25-09-2026, ....
+
+### sebelum perbaikan
+
+- yang teramati di trace (baseline): pengukuran 4x di commit a2666e1 (laporan/hasil/sesudah-4x.json, median 3 kali): long task terlama S1 159 ms, S2 129 ms, S4 127 ms, S5 107 ms; INP S4 224 ms; frame lebih dari 50 ms di S5 35 per 10 detik; main thread S6 sibuk 80% menurut trace sesudah-4x-s6. isi long task di trace 4x: di S1 dan S4, layout 80 sampai 91 ms setiap kali potongan 40 kartu dirender; di S2, layout 134 ms di dalam task klik, lalu task susulan 144 ms yang berisi parse riwayat, simpan riwayat, dan Lacak.kirim sekaligus; di S5, kirimImpresi sekitar 100 ms per kiriman; di S6, IntersectionObserverController::computeIntersections 1.823 ms dan Commit 2.542 ms.
+- dugaan mekanisme:
+  1. subgrid dari P-05 mengikat baris semua kartu, jadi perubahan teks di satu tombol memaksa layout seluruh kisi. eksperimen pada 4x (mengganti teks satu tombol lalu membaca offsetHeight): dengan subgrid sekitar 10 ms untuk 40 kartu dan sekitar 52 ms untuk 200 kartu; tanpa subgrid 3 sampai 5 ms berapa pun jumlah kartunya. contain: strict pada baris tombol tidak mengubah angka ini (sekitar 35 ms untuk 200 kartu), jadi layout grid tetap dihitung ulang seluruhnya.
+  2. potongan 40 kartu terlalu besar untuk ponsel lambat: membuat dan me-layout 40 kartu baru sekitar 80 sampai 90 ms pada 4x.
+  3. alat ukur (ukur.js) menjalankan requestAnimationFrame terus-menerus, sehingga main thread membuat frame di setiap vsync. di setiap frame, IntersectionObserver menghitung perpotongan semua kartu yang diamati (semua kartu terender tetap diamati setelah impresinya tercatat).
+  4. biaya satu panggilan Lacak.kirim pada 4x sekitar 55 sampai 100 ms (fingerprint 2.000.000 iterasi). S1 memanggil search untuk tiap huruf karena jeda ketik skenario (250 ms) lebih panjang dari debounce (150 ms), dan S5 mengirim impresi tiap detik.
+- rencana perubahan:
+  1. subgrid diganti kartu flex dengan judul minimal tiga baris (alternatif yang sudah dicatat di P-05). judul lebih dari tiga baris tetap tampil utuh, hanya kartunya sedikit lebih tinggi.
+  2. potongan render dikecilkan menjadi 16 kartu.
+  3. kartu non-kilat berhenti diamati setelah muncul dan impresinya tercatat; kartu kilat tetap diamati untuk menjeda animasi lencana.
+  4. event search dikirim setelah kata kunci tidak berubah selama 1 detik; impresi dikumpulkan dan dikirim paling sering sekali per 5 detik, dengan kiriman terakhir saat pagehide; riwayat dibaca saat browser idle setelah halaman dimuat, dan pencatatan riwayat serta Lacak.kirim dijalankan di task terpisah.
+- prediksi terukur: pada 4x, long task terlama S1, S2, dan S4 turun ke bawah 100 ms, karena task terpanjang yang tersisa adalah satu panggilan Lacak.kirim (sekitar 55 sampai 90 ms). INP S4 turun dari 224 ms ke bawah 200 ms. frame lebih dari 50 ms di S5 turun dari 35, tetapi dugaan saya belum sampai 2 per 10 detik, karena frame yang dipaksa alat ukur tetap membawa biaya commit dan paint untuk kartu baru. waktu sibuk main thread S6 pada 4x turun dari 80% ke sekitar 50 sampai 60%, karena perhitungan IntersectionObserver hilang tetapi commit per frame tetap. efek samping: judul satu atau dua baris menyisakan ruang kosong; judul lebih dari tiga baris membuat harga dan tombol di kartu itu tidak sejajar dengan kartu sebelahnya; event search dan impression tiba lebih lambat di analitik (sampai 1 detik dan 5 detik); guliran cepat memicu lebih banyak potongan kecil.
+- alternatif yang dipertimbangkan dan alasan tidak dipilih:
+  - mempertahankan subgrid dan membatasi jumlah kartu di DOM (virtualisasi): biaya layout tetap sebanding dengan jumlah kartu yang ada, dan virtualisasi mengganggu urutan Tab.
+  - contain: strict pada baris tombol: sudah dicoba, tidak menurunkan biaya layout grid.
+  - mengirim impresi hanya saat pagehide: long task saat menggulir hilang, tetapi impresi bisa hilang bila halaman ditutup paksa.
+
+### sesudah perbaikan
+
+- hash commit perbaikan: ....
+- hasil ukur (median 3 kali): ....
+- prediksi vs kenyataan: ....
+- efek samping yang muncul: ....
