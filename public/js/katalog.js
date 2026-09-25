@@ -44,14 +44,15 @@ function buatKartu(produk) {
   const media = el('a', 'kartu-media');
   media.href = '#produk-' + produk.id;
   const gambar = document.createElement('img');
-  gambar.src = produk.gambar;
-  gambar.alt = produk.nama;
+  // hanya gambar yang mendekati layar yang diminta; sisanya menunggu digulir.
+  // loading harus diisi sebelum src: begitu src diisi, browser langsung memutuskan cara memuat gambar itu.
+  gambar.loading = 'lazy';
+  gambar.decoding = 'async';
   // ukuran intrinsik gambar dari CDN (480 x 480): browser mencadangkan ruang persegi sebelum gambar tiba
   gambar.width = 480;
   gambar.height = 480;
-  // hanya gambar yang mendekati layar yang diminta; sisanya menunggu digulir
-  gambar.loading = 'lazy';
-  gambar.decoding = 'async';
+  gambar.alt = produk.nama;
+  gambar.src = produk.gambar;
   media.append(gambar);
 
   const badan = el('div', 'kartu-badan');
