@@ -11,7 +11,7 @@ export const keadaan = {
 };
 
 // Kartu dirender bertahap: potongan pertama langsung, sisanya saat sentinel di ujung kisi mendekati layar.
-const UKURAN_POTONGAN = 40;
+const UKURAN_POTONGAN = 16;
 let jumlahDirender = 0;
 
 // Elemen kartu disimpan per id dan dipakai ulang antar-render, sehingga <img> tidak dibuat (dan diunduh) ulang.
