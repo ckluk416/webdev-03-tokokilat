@@ -158,6 +158,10 @@ button { cursor: pointer; }
 .toast { position: fixed; left: 50%; bottom: 24px; z-index: 60; transform: translateX(-50%); background: var(--tinta); color: var(--putih); padding: 12px 18px; border-radius: 10px; font-weight: 600; max-width: min(92vw, 520px); opacity: 0; pointer-events: none; transition: opacity .2s; }
 .toast.tampil { opacity: 1; }
 
+/* target ketuk minimal 44 x 44 px (WCAG 2.5.5); sebelumnya tombol header 39 px dan keping kategori 34 px */
+.merek-toko, .tombol-kepala, .keping, .alat-kanan select, .voucher input, .voucher button, .aksi button,
+.panel-kepala button, .panel-kaki button, .panel-daftar .hapus { min-height: 44px; }
+
 @media (max-width: 560px) {
   .kisi { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .utama { padding: 10px; }
