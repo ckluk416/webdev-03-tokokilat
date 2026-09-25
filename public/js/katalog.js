@@ -49,6 +49,9 @@ function buatKartu(produk) {
   // ukuran intrinsik gambar dari CDN (480 x 480): browser mencadangkan ruang persegi sebelum gambar tiba
   gambar.width = 480;
   gambar.height = 480;
+  // hanya gambar yang mendekati layar yang diminta; sisanya menunggu digulir
+  gambar.loading = 'lazy';
+  gambar.decoding = 'async';
   media.append(gambar);
 
   const badan = el('div', 'kartu-badan');
