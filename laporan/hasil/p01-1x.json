@@ -1,0 +1,85 @@
+{
+  "label": "p01-1x",
+  "waktu": "2026-09-25T11:48:50.059Z",
+  "chrome": "Chrome/153.0.8010.53",
+  "cpu": "AMD Ryzen 5 7535HS with Radeon Graphics",
+  "inti": 12,
+  "ramGB": 23,
+  "throttlingCPU": "1x",
+  "viewport": "412x915",
+  "ulang": 3,
+  "skenario": {
+    "S2": {
+      "median": {
+        "inp": 112,
+        "jumlahInteraksi": 1,
+        "longTaskTerlama": 100,
+        "jumlahLongTask": 11,
+        "totalBlokir": 316,
+        "frameLambat": 11,
+        "frameTerburuk": 167,
+        "cls": 0,
+        "taskMs": 3283,
+        "skripMs": 349,
+        "layoutMs": 604,
+        "gayaMs": 66,
+        "jumlahLayout": 90,
+        "durasiDtk": 1.4,
+        "tambahanKeranjang": 1
+      },
+      "putaran": [
+        {
+          "inp": 112,
+          "jumlahInteraksi": 1,
+          "longTaskTerlama": 104,
+          "jumlahLongTask": 12,
+          "totalBlokir": 413,
+          "frameLambat": 11,
+          "frameTerburuk": 167,
+          "cls": 0,
+          "taskMs": 3410,
+          "skripMs": 365,
+          "layoutMs": 600,
+          "gayaMs": 67,
+          "jumlahLayout": 93,
+          "durasiDtk": 1.6,
+          "tambahanKeranjang": 1
+        },
+        {
+          "inp": 112,
+          "jumlahInteraksi": 1,
+          "longTaskTerlama": 90,
+          "jumlahLongTask": 11,
+          "totalBlokir": 316,
+          "frameLambat": 12,
+          "frameTerburuk": 153,
+          "cls": 0,
+          "taskMs": 3283,
+          "skripMs": 349,
+          "layoutMs": 612,
+          "gayaMs": 66,
+          "jumlahLayout": 90,
+          "durasiDtk": 1.4,
+          "tambahanKeranjang": 1
+        },
+        {
+          "inp": 104,
+          "jumlahInteraksi": 1,
+          "longTaskTerlama": 100,
+          "jumlahLongTask": 10,
+          "totalBlokir": 298,
+          "frameLambat": 10,
+          "frameTerburuk": 174,
+          "cls": 0,
+          "taskMs": 3057,
+          "skripMs": 334,
+          "layoutMs": 604,
+          "gayaMs": 62,
+          "jumlahLayout": 85,
+          "durasiDtk": 1.4,
+          "tambahanKeranjang": 1
+        }
+      ]
+    }
+  }
+}

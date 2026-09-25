@@ -1,0 +1,81 @@
+{
+  "label": "p06-1x",
+  "waktu": "2026-09-25T11:53:56.202Z",
+  "chrome": "Chrome/153.0.8010.53",
+  "cpu": "AMD Ryzen 5 7535HS with Radeon Graphics",
+  "inti": 12,
+  "ramGB": 23,
+  "throttlingCPU": "1x",
+  "viewport": "412x915",
+  "ulang": 3,
+  "skenario": {
+    "S1": {
+      "median": {
+        "inp": 24,
+        "jumlahInteraksi": 6,
+        "longTaskTerlama": 0,
+        "jumlahLongTask": 0,
+        "totalBlokir": 0,
+        "frameLambat": 0,
+        "frameTerburuk": 0,
+        "cls": 0,
+        "taskMs": 3330,
+        "skripMs": 295,
+        "layoutMs": 677,
+        "gayaMs": 206,
+        "jumlahLayout": 2779,
+        "durasiDtk": 6.6
+      },
+      "putaran": [
+        {
+          "inp": 24,
+          "jumlahInteraksi": 6,
+          "longTaskTerlama": 0,
+          "jumlahLongTask": 0,
+          "totalBlokir": 0,
+          "frameLambat": 0,
+          "frameTerburuk": 0,
+          "cls": 0,
+          "taskMs": 3503,
+          "skripMs": 314,
+          "layoutMs": 712,
+          "gayaMs": 216,
+          "jumlahLayout": 2764,
+          "durasiDtk": 6.6
+        },
+        {
+          "inp": 24,
+          "jumlahInteraksi": 5,
+          "longTaskTerlama": 0,
+          "jumlahLongTask": 0,
+          "totalBlokir": 0,
+          "frameLambat": 0,
+          "frameTerburuk": 0,
+          "cls": 0,
+          "taskMs": 3330,
+          "skripMs": 279,
+          "layoutMs": 677,
+          "gayaMs": 201,
+          "jumlahLayout": 2779,
+          "durasiDtk": 6.6
+        },
+        {
+          "inp": 24,
+          "jumlahInteraksi": 7,
+          "longTaskTerlama": 0,
+          "jumlahLongTask": 0,
+          "totalBlokir": 0,
+          "frameLambat": 0,
+          "frameTerburuk": 0,
+          "cls": 0,
+          "taskMs": 3319,
+          "skripMs": 295,
+          "layoutMs": 664,
+          "gayaMs": 206,
+          "jumlahLayout": 2780,
+          "durasiDtk": 6.5
+        }
+      ]
+    }
+  }
+}

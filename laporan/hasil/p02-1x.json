@@ -1,0 +1,85 @@
+{
+  "label": "p02-1x",
+  "waktu": "2026-09-25T11:49:49.715Z",
+  "chrome": "Chrome/153.0.8010.53",
+  "cpu": "AMD Ryzen 5 7535HS with Radeon Graphics",
+  "inti": 12,
+  "ramGB": 23,
+  "throttlingCPU": "1x",
+  "viewport": "412x915",
+  "ulang": 3,
+  "skenario": {
+    "S3": {
+      "median": {
+        "inp": 160,
+        "jumlahInteraksi": 3,
+        "longTaskTerlama": 121,
+        "jumlahLongTask": 31,
+        "totalBlokir": 1308,
+        "frameLambat": 33,
+        "frameTerburuk": 222,
+        "cls": 0,
+        "taskMs": 6954,
+        "skripMs": 663,
+        "layoutMs": 1271,
+        "gayaMs": 126,
+        "jumlahLayout": 155,
+        "durasiDtk": 5.5,
+        "jumlahPesanan": 1
+      },
+      "putaran": [
+        {
+          "inp": 176,
+          "jumlahInteraksi": 3,
+          "longTaskTerlama": 121,
+          "jumlahLongTask": 31,
+          "totalBlokir": 1292,
+          "frameLambat": 33,
+          "frameTerburuk": 222,
+          "cls": 0,
+          "taskMs": 6925,
+          "skripMs": 685,
+          "layoutMs": 1271,
+          "gayaMs": 126,
+          "jumlahLayout": 155,
+          "durasiDtk": 5.5,
+          "jumlahPesanan": 1
+        },
+        {
+          "inp": 160,
+          "jumlahInteraksi": 3,
+          "longTaskTerlama": 112,
+          "jumlahLongTask": 33,
+          "totalBlokir": 1357,
+          "frameLambat": 35,
+          "frameTerburuk": 209,
+          "cls": 0,
+          "taskMs": 6954,
+          "skripMs": 644,
+          "layoutMs": 1218,
+          "gayaMs": 131,
+          "jumlahLayout": 168,
+          "durasiDtk": 5.5,
+          "jumlahPesanan": 1
+        },
+        {
+          "inp": 152,
+          "jumlahInteraksi": 3,
+          "longTaskTerlama": 149,
+          "jumlahLongTask": 30,
+          "totalBlokir": 1308,
+          "frameLambat": 32,
+          "frameTerburuk": 243,
+          "cls": 0,
+          "taskMs": 6989,
+          "skripMs": 663,
+          "layoutMs": 1396,
+          "gayaMs": 118,
+          "jumlahLayout": 154,
+          "durasiDtk": 5.5,
+          "jumlahPesanan": 1
+        }
+      ]
+    }
+  }
+}

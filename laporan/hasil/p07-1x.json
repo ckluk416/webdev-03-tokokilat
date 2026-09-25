@@ -1,0 +1,84 @@
+{
+  "label": "p07-1x",
+  "waktu": "2026-09-25T11:54:59.619Z",
+  "chrome": "Chrome/153.0.8010.53",
+  "cpu": "AMD Ryzen 5 7535HS with Radeon Graphics",
+  "inti": 12,
+  "ramGB": 23,
+  "throttlingCPU": "1x",
+  "viewport": "412x915",
+  "ulang": 3,
+  "skenario": {
+    "S5": {
+      "median": {
+        "jumlahInteraksi": 0,
+        "longTaskTerlama": 0,
+        "jumlahLongTask": 0,
+        "totalBlokir": 0,
+        "frameLambat": 0,
+        "frameTerburuk": 0,
+        "cls": 0,
+        "taskMs": 4306,
+        "skripMs": 322,
+        "layoutMs": 1022,
+        "gayaMs": 418,
+        "jumlahLayout": 2937,
+        "durasiDtk": 10.3,
+        "posisiGulir": 14580
+      },
+      "putaran": [
+        {
+          "inp": null,
+          "jumlahInteraksi": 0,
+          "longTaskTerlama": 0,
+          "jumlahLongTask": 0,
+          "totalBlokir": 0,
+          "frameLambat": 0,
+          "frameTerburuk": 0,
+          "cls": 0,
+          "taskMs": 4442,
+          "skripMs": 348,
+          "layoutMs": 1028,
+          "gayaMs": 421,
+          "jumlahLayout": 2937,
+          "durasiDtk": 10.3,
+          "posisiGulir": 14580
+        },
+        {
+          "inp": null,
+          "jumlahInteraksi": 0,
+          "longTaskTerlama": 0,
+          "jumlahLongTask": 0,
+          "totalBlokir": 0,
+          "frameLambat": 0,
+          "frameTerburuk": 0,
+          "cls": 0,
+          "taskMs": 4287,
+          "skripMs": 322,
+          "layoutMs": 1015,
+          "gayaMs": 418,
+          "jumlahLayout": 2931,
+          "durasiDtk": 10.3,
+          "posisiGulir": 14580
+        },
+        {
+          "inp": null,
+          "jumlahInteraksi": 0,
+          "longTaskTerlama": 0,
+          "jumlahLongTask": 0,
+          "totalBlokir": 0,
+          "frameLambat": 0,
+          "frameTerburuk": 0,
+          "cls": 0,
+          "taskMs": 4306,
+          "skripMs": 320,
+          "layoutMs": 1022,
+          "gayaMs": 413,
+          "jumlahLayout": 2943,
+          "durasiDtk": 10.4,
+          "posisiGulir": 14580
+        }
+      ]
+    }
+  }
+}

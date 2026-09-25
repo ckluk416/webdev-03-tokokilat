@@ -1,0 +1,81 @@
+{
+  "label": "p04-1x",
+  "waktu": "2026-09-25T11:36:50.071Z",
+  "chrome": "Chrome/153.0.8010.53",
+  "cpu": "AMD Ryzen 5 7535HS with Radeon Graphics",
+  "inti": 12,
+  "ramGB": 23,
+  "throttlingCPU": "1x",
+  "viewport": "412x915",
+  "ulang": 3,
+  "skenario": {
+    "S1": {
+      "median": {
+        "inp": 3792,
+        "jumlahInteraksi": 12,
+        "longTaskTerlama": 3178,
+        "jumlahLongTask": 17,
+        "totalBlokir": 6954,
+        "frameLambat": 21,
+        "frameTerburuk": 3773,
+        "cls": 0,
+        "taskMs": 12588,
+        "skripMs": 3181,
+        "layoutMs": 4143,
+        "gayaMs": 609,
+        "jumlahLayout": 769,
+        "durasiDtk": 11.2
+      },
+      "putaran": [
+        {
+          "inp": 3848,
+          "jumlahInteraksi": 12,
+          "longTaskTerlama": 3182,
+          "jumlahLongTask": 15,
+          "totalBlokir": 7192,
+          "frameLambat": 17,
+          "frameTerburuk": 3877,
+          "cls": 0,
+          "taskMs": 12588,
+          "skripMs": 3223,
+          "layoutMs": 4143,
+          "gayaMs": 634,
+          "jumlahLayout": 745,
+          "durasiDtk": 11.1
+        },
+        {
+          "inp": 3696,
+          "jumlahInteraksi": 12,
+          "longTaskTerlama": 3130,
+          "jumlahLongTask": 19,
+          "totalBlokir": 6765,
+          "frameLambat": 22,
+          "frameTerburuk": 3696,
+          "cls": 0,
+          "taskMs": 12608,
+          "skripMs": 3181,
+          "layoutMs": 4125,
+          "gayaMs": 604,
+          "jumlahLayout": 809,
+          "durasiDtk": 11.2
+        },
+        {
+          "inp": 3792,
+          "jumlahInteraksi": 12,
+          "longTaskTerlama": 3178,
+          "jumlahLongTask": 17,
+          "totalBlokir": 6954,
+          "frameLambat": 21,
+          "frameTerburuk": 3773,
+          "cls": 0,
+          "taskMs": 12553,
+          "skripMs": 3104,
+          "layoutMs": 4199,
+          "gayaMs": 609,
+          "jumlahLayout": 769,
+          "durasiDtk": 11.2
+        }
+      ]
+    }
+  }
+}

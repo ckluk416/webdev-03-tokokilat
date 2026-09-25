@@ -1,0 +1,41 @@
+{
+  "label": "p09-1x",
+  "waktu": "2026-09-25T11:58:52.632Z",
+  "chrome": "Chrome/153.0.8010.53",
+  "cpu": "AMD Ryzen 5 7535HS with Radeon Graphics",
+  "inti": 12,
+  "ramGB": 23,
+  "throttlingCPU": "1x",
+  "viewport": "412x915",
+  "ulang": 3,
+  "skenario": {
+    "S0": {
+      "median": {
+        "cls": 0.032,
+        "longTaskTerlama": 0,
+        "permintaanGambar10dtk": 40,
+        "gambarSelesai10dtk": 40
+      },
+      "putaran": [
+        {
+          "cls": 0.032,
+          "longTaskTerlama": 0,
+          "permintaanGambar10dtk": 40,
+          "gambarSelesai10dtk": 40
+        },
+        {
+          "cls": 0.032,
+          "longTaskTerlama": 0,
+          "permintaanGambar10dtk": 40,
+          "gambarSelesai10dtk": 40
+        },
+        {
+          "cls": 0.032,
+          "longTaskTerlama": 0,
+          "permintaanGambar10dtk": 40,
+          "gambarSelesai10dtk": 40
+        }
+      ]
+    }
+  }
+}

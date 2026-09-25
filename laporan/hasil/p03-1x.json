@@ -1,0 +1,89 @@
+{
+  "label": "p03-1x",
+  "waktu": "2026-09-25T11:51:03.116Z",
+  "chrome": "Chrome/153.0.8010.53",
+  "cpu": "AMD Ryzen 5 7535HS with Radeon Graphics",
+  "inti": 12,
+  "ramGB": 23,
+  "throttlingCPU": "1x",
+  "viewport": "412x915",
+  "ulang": 3,
+  "skenario": {
+    "S4": {
+      "median": {
+        "inp": 5504,
+        "jumlahInteraksi": 8,
+        "longTaskTerlama": 3474,
+        "jumlahLongTask": 4,
+        "totalBlokir": 5697,
+        "frameLambat": 17,
+        "frameTerburuk": 5753,
+        "cls": 0,
+        "taskMs": 10032,
+        "skripMs": 1822,
+        "layoutMs": 2981,
+        "gayaMs": 523,
+        "jumlahLayout": 677,
+        "durasiDtk": 8.8,
+        "framePenampilProgres": 1,
+        "durasiVoucherMs": 6547
+      },
+      "putaran": [
+        {
+          "inp": 5640,
+          "jumlahInteraksi": 8,
+          "longTaskTerlama": 3474,
+          "jumlahLongTask": 5,
+          "totalBlokir": 5876,
+          "frameLambat": 17,
+          "frameTerburuk": 5864,
+          "cls": 0,
+          "taskMs": 10109,
+          "skripMs": 1813,
+          "layoutMs": 3223,
+          "gayaMs": 523,
+          "jumlahLayout": 629,
+          "durasiDtk": 8.9,
+          "framePenampilProgres": 1,
+          "durasiVoucherMs": 6780
+        },
+        {
+          "inp": 5280,
+          "jumlahInteraksi": 8,
+          "longTaskTerlama": 3615,
+          "jumlahLongTask": 4,
+          "totalBlokir": 5453,
+          "frameLambat": 15,
+          "frameTerburuk": 5517,
+          "cls": 0,
+          "taskMs": 9727,
+          "skripMs": 1900,
+          "layoutMs": 2892,
+          "gayaMs": 467,
+          "jumlahLayout": 706,
+          "durasiDtk": 8.5,
+          "framePenampilProgres": 1,
+          "durasiVoucherMs": 6309
+        },
+        {
+          "inp": 5504,
+          "jumlahInteraksi": 8,
+          "longTaskTerlama": 3466,
+          "jumlahLongTask": 4,
+          "totalBlokir": 5697,
+          "frameLambat": 17,
+          "frameTerburuk": 5753,
+          "cls": 0,
+          "taskMs": 10032,
+          "skripMs": 1822,
+          "layoutMs": 2981,
+          "gayaMs": 552,
+          "jumlahLayout": 677,
+          "durasiDtk": 8.8,
+          "framePenampilProgres": 1,
+          "durasiVoucherMs": 6547
+        }
+      ]
+    }
+  }
+}
