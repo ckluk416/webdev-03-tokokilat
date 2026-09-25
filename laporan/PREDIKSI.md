@@ -368,10 +368,10 @@ tanggal dan hash commit entri ini: 25-09-2026, 51766d2
 
 ### sesudah perbaikan
 
-- hash commit perbaikan: ....
-- hasil ukur (median 3 kali): ....
-- prediksi vs kenyataan: ....
-- efek samping yang muncul: ....
+- hash commit perbaikan: 29f95e0, aee6dcf, 66dca6e, 7f50574
+- hasil ukur (median 3 kali): pada 4x di commit 7f50574 (laporan/hasil/p11-4x.json), dibanding sebelum P-11 (laporan/hasil/sesudah-4x.json): long task terlama S1 159 ms menjadi 93 ms, S4 127 ms menjadi 94 ms, S2 129 ms menjadi 126 ms, S5 107 ms menjadi 85 ms; INP S1 176 ms menjadi 88 ms dan INP S4 224 ms menjadi 176 ms; frame lebih dari 50 ms di S5 35 menjadi 10 per 10 detik; main thread S6 sibuk 80% menjadi 69% (trace p11-4x-s6).
+- prediksi vs kenyataan: sebagian. S1 dan S4 tepat: long task di bawah 100 ms dan INP S4 di bawah 200 ms. S5 sesuai prediksi (turun, tetapi belum 2). S2 meleset: long task 126 ms tetap ada. trace p11-4x-s2 menunjukkan task klik berisi layout 121 ms dengan hanya 17 objek kotor dari 525, jadi penyebabnya bukan ukuran kisi; penyebab yang ditemukan kemudian adalah pencarian font pengganti untuk karakter ✓ (lihat P-12). waktu sibuk S6 69% sedikit di atas prediksi 50 sampai 60%; biaya commit per frame yang dipaksa alat ukur ternyata lebih besar dari perkiraan saya.
+- efek samping yang muncul: judul satu atau dua baris menyisakan ruang kosong di kartu; judul lebih dari tiga baris membuat harga dan tombol kartu itu turun sedikit dibanding tetangganya. event search kini tiba 1 detik setelah kata kunci stabil, dan impression sampai 5 detik setelah kartu terlihat. potongan 16 kartu membuat guliran sampai ujung daftar butuh 188 potongan; uji click-through tetap menjangkau 3.000 kartu.
 
 ---
 
@@ -393,7 +393,7 @@ tanggal dan hash commit entri ini: 25-09-2026, d24d6ba
 
 ### sesudah perbaikan
 
-- hash commit perbaikan: ....
-- hasil ukur (median 3 kali): ....
-- prediksi vs kenyataan: ....
-- efek samping yang muncul: ....
+- hash commit perbaikan: 5c5e303
+- hasil ukur (median 3 kali): pada 4x di commit 5c5e303 (laporan/hasil/akhir-4x.json), long task terlama S2 turun dari 126 ms menjadi 0 di ketiga putaran, dan INP S2 dari 144 ms menjadi 48 ms. di trace akhir-4x-s2, task klik 45 ms dengan layout 20,5 ms (sebelumnya task klik 157 ms dengan layout 121 ms di trace p11-4x-s2).
+- prediksi vs kenyataan: hampir tepat. long task S2 di bawah 100 ms tercapai, dan INP 48 ms lebih rendah dari prediksi 80 sampai 100 ms. layout di task klik 20,5 ms, sedikit di atas prediksi di bawah 20 ms. catatan: pada pengukuran yang sama, INP S1 juga turun dari 88 ms menjadi 32 ms walau kode S1 tidak berubah, jadi sebagian penurunan INP S2 bisa berasal dari variasi antarsesi pada 4x. long task S2 yang hilang di ketiga putaran tetap konsisten dengan hilangnya layout 121 ms itu.
+- efek samping yang muncul: tombol tidak lagi menampilkan simbol centang; keberhasilan ditandai teks "Ditambahkan" dengan latar hijau dan teks "Dipesan".
