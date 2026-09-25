@@ -1,0 +1,132 @@
+[
+  {
+    "kontrol": "banner promo",
+    "lolos": true,
+    "bukti": "awal \"Memuat promo 12.12…\", lalu terisi \"Gratis ongkir se-Indonesia, tanpa minimum belanja\""
+  },
+  {
+    "kontrol": "hitung mundur",
+    "lolos": true,
+    "bukti": "angka perseratus detik berubah 62 -> 48, jam 05"
+  },
+  {
+    "kontrol": "teks berjalan dan lencana kilat",
+    "lolos": true,
+    "bukti": "animasi teks: berjalan; 6 lencana di DOM, 2 animasi per lencana"
+  },
+  {
+    "kontrol": "tautan \"Langsung ke daftar produk\"",
+    "lolos": true,
+    "bukti": "Tab pertama memfokus tautan (lompat|8px), Enter ke #kisi"
+  },
+  {
+    "kontrol": "kolom cari \"sepatu\"",
+    "lolos": true,
+    "bukti": "106 produk ditampilkan; kartu pertama \"Lumina Sepatu Sneakers Ready Stock Siap Kirim Hari Ini\""
+  },
+  {
+    "kontrol": "pencarian tanpa hasil",
+    "lolos": true,
+    "bukti": "0 produk ditampilkan; pesan \"Produk tidak ditemukan.\""
+  },
+  {
+    "kontrol": "mengosongkan kolom cari",
+    "lolos": true,
+    "bukti": "3.000 produk ditampilkan"
+  },
+  {
+    "kontrol": "keping kategori \"Elektronik\"",
+    "lolos": true,
+    "bukti": "362 produk ditampilkan (data server: 362), aria-pressed hanya pada Elektronik"
+  },
+  {
+    "kontrol": "urutkan \"Harga terendah\"",
+    "lolos": true,
+    "bukti": "nilai select murah, 8 harga pertama naik: 9900, 15700, 20100, 21200, 22200, 22800, 23400, 23800"
+  },
+  {
+    "kontrol": "voucher tidak dikenal",
+    "lolos": true,
+    "bukti": "Kode voucher \"ABC\" tidak dikenal. Coba KILAT1212."
+  },
+  {
+    "kontrol": "tombol \"Pakai voucher\" KILAT1212",
+    "lolos": true,
+    "bukti": "Voucher KILAT1212 dipakai di 2.264 produk.; progres tampil di 8 frame; 23 kartu terender menampilkan harga voucher"
+  },
+  {
+    "kontrol": "tombol \"+ Keranjang\"",
+    "lolos": true,
+    "bukti": "lencana 0 -> 1, tombol \"Ditambahkan ✓\", toast \"Ditambahkan ke keranjang: Garda Teh Hijau Celup Bisa COD\""
+  },
+  {
+    "kontrol": "tombol \"Beli sekarang\" 3 klik cepat",
+    "lolos": true,
+    "bukti": "1 pesanan di server; keadaan tombol: Memproses pesanan [aria-busy=true] -> Dipesan ✓ [aria-busy=null] -> Beli sekarang [aria-busy=null]; lencana pesanan 1"
+  },
+  {
+    "kontrol": "tombol \"Pesanan\"",
+    "lolos": true,
+    "bukti": "1 pesanan. Terakhir: TK-00001 (produk #2)"
+  },
+  {
+    "kontrol": "tombol \"Keranjang\" (buka panel)",
+    "lolos": true,
+    "bukti": "panel terbuka, fokus di #tutup-keranjang, 1 baris, total Rp 10.700"
+  },
+  {
+    "kontrol": "tombol \"Hapus dari keranjang\"",
+    "lolos": true,
+    "bukti": "baris tersisa 1, lencana 0"
+  },
+  {
+    "kontrol": "tombol \"Tutup\" panel",
+    "lolos": true,
+    "bukti": "panel tertutup, fokus kembali ke #tombol-keranjang"
+  },
+  {
+    "kontrol": "tombol \"Kosongkan keranjang\"",
+    "lolos": true,
+    "bukti": "lencana 0, isi \"Keranjang masih kosong. Tambahkan produk dari daftar.\""
+  },
+  {
+    "kontrol": "Escape menutup panel",
+    "lolos": true,
+    "bukti": "panel hidden=true, fokus #tombol-keranjang"
+  },
+  {
+    "kontrol": "tombol \"Lihat syarat promo\"",
+    "lolos": true,
+    "bukti": "Syarat promo: berlaku 12 Desember, satu voucher per akun, tidak bisa digabung."
+  },
+  {
+    "kontrol": "gulir daftar produk",
+    "lolos": true,
+    "bukti": "kartu dirender 40 -> 80 saat digulir; tombol \"Ke atas\" tampil; 98 gambar diminta sejauh ini"
+  },
+  {
+    "kontrol": "tombol \"Ke atas\"",
+    "lolos": true,
+    "bukti": "scrollY 0, fokus pindah ke .merek-toko"
+  },
+  {
+    "kontrol": "semua produk terjangkau dengan menggulir",
+    "lolos": true,
+    "bukti": "3000 kartu setelah digulir sampai bawah; kaki: 5 merek, 8 kategori terkait"
+  },
+  {
+    "kontrol": "fokus keyboard terlihat",
+    "lolos": true,
+    "bukti": "elemen fokus button#tombol-pesanan.tombol-kepala: outline solid 2.4px rgb(255, 212, 0), border rgba(255, 255, 255, 0.45)"
+  },
+  {
+    "kontrol": "event SDK tetap terkirim",
+    "lolos": true,
+    "bukti": "terkirim: page_view, impression, search, apply_voucher, add_to_cart, begin_checkout, promo_click"
+  },
+  {
+    "kontrol": "galat konsol",
+    "lolos": true,
+    "bukti": "tidak ada galat"
+  }
+]
