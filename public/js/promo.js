@@ -22,22 +22,33 @@ function pasangHitungMundur() {
   const garis = $('#hm-garis');
   const jam = $('#hm-jam'), menit = $('#hm-menit'), detik = $('#hm-detik'), senti = $('#hm-senti');
 
-  // Sekali per frame, bukan setiap 10 ms: layar hanya menampilkan satu nilai per frame, dan
-  // requestAnimationFrame berhenti sendiri saat tab tidak terlihat.
+  // Angka perseratus detik berganti 100 kali per detik. Bila ditulis dari JavaScript, tiap frame perlu
+  // style, layout, dan paint di main thread. Di sini angkanya berupa strip 99 sampai 00 yang digeser
+  // animasi CSS steps(100) selama 1 detik (dijalankan compositor), jadi JavaScript cukup bekerja sekali per detik.
+  const strip = document.createElement('i');
+  strip.className = 'senti-strip';
+  strip.textContent = Array.from({ length: 100 }, (_, i) => duaDigit(99 - i)).join('\n');
+  senti.replaceChildren(strip);
+  senti.setAttribute('aria-hidden', 'true');
+
   const perbarui = () => {
     const sisa = Math.max(akhir - Date.now(), 0);
+    // fase animasi disamakan dengan sisa milidetik pada detik ini, sekali per detik, supaya tidak bergeser
+    // dari angka detik (waktu mulai animasi CSS bergantung pada kapan style pertama kali dihitung)
+    const animasi = strip.getAnimations()[0];
+    if (animasi) animasi.currentTime = 1000 - (sisa % 1000);
     tulis(jam, duaDigit(Math.floor(sisa / 3600000)));
     tulis(menit, duaDigit(Math.floor((sisa % 3600000) / 60000)));
-    const detikBaru = duaDigit(Math.floor((sisa % 60000) / 1000));
-    if (detik.textContent !== detikBaru) {
-      detik.textContent = detikBaru;
-      // garis di bawah angka menyusut mengikuti sisa waktu; transform tidak perlu layout
-      garis.style.transform = 'scaleX(' + sisa / (akhir - awal + 1) + ')';
+    tulis(detik, duaDigit(Math.floor((sisa % 60000) / 1000)));
+    // garis di bawah angka menyusut mengikuti sisa waktu; transform tidak perlu layout
+    garis.style.transform = 'scaleX(' + sisa / (akhir - awal + 1) + ')';
+    if (sisa > 0) {
+      setTimeout(perbarui, (sisa % 1000) + 1); // tepat setelah pergantian detik berikutnya
+    } else {
+      strip.classList.add('berhenti');
     }
-    tulis(senti, duaDigit(Math.floor((sisa % 1000) / 10)));
-    if (sisa > 0) requestAnimationFrame(perbarui);
   };
-  requestAnimationFrame(perbarui);
+  perbarui();
 }
 
 // Teks berjalan digerakkan animasi CSS pada transform, yang dijalankan compositor.

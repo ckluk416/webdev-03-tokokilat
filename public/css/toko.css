@@ -47,6 +47,11 @@ button { cursor: pointer; }
 .angka { display: flex; flex-direction: column; align-items: center; }
 .angka span { font: italic 900 clamp(34px, 6vw, 64px)/1 var(--huruf-tegas); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
 .angka.kecil span { font-size: clamp(20px, 3vw, 30px); color: var(--nila-2); padding-top: .55em; }
+/* perseratus detik: jendela setinggi satu angka, strip 99..00 di dalamnya digeser compositor */
+#hm-senti { display: inline-block; height: 1em; padding-top: 0; margin-top: .55em; overflow: hidden; }
+.senti-strip { display: block; font-style: inherit; white-space: pre; animation: perseratus 1s steps(100, end) infinite; }
+.senti-strip.berhenti { animation: none; transform: translateY(-99%); }
+@keyframes perseratus { to { transform: translateY(-100%); } }
 .angka small { font-size: 12px; font-weight: 600; }
 .hm-garis { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: var(--tinta); transform-origin: left; }
 .berjalan { position: relative; height: 34px; background: var(--nila-2); color: var(--putih); overflow: hidden; }
@@ -162,5 +167,6 @@ button { cursor: pointer; }
   html { scroll-behavior: auto; }
   .lencana-kilat, .lencana-kilat::after { animation: none; }
   .berjalan-teks { animation: none; transform: none; }
+  .senti-strip { animation: none; transform: translateY(-99%); }
   .kartu { transition: none; }
 }
