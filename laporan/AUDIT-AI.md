@@ -65,8 +65,8 @@ cara uji: protokol yang sama dengan pengukuran utama (laporan/bench/ukur-cdp.js,
 - prompt yang diberikan (ringkas): sama dengan A-01.
 - usulan AI (ringkas): kedua setInterval 10 ms di promo.js diganti loop requestAnimationFrame; lebar elemen dibaca sekali lalu disimpan. tiap frame tetap menulis empat teks hitung mundur, garis.style.width, dan teks.style.left. CSS lencana (animasi top dan box-shadow) tidak disentuh.
 - jenis masalah pada usulan:
-  - [x] salah diagnosis (memperbaiki hal yang bukan penyebab)
-  - [ ] tidak lengkap (gejala berkurang tetapi akar masalah masih ada)
+  - [ ] salah diagnosis (memperbaiki hal yang bukan penyebab)
+  - [x] tidak lengkap (gejala berkurang tetapi akar masalah masih ada)
   - [x] menimbulkan regresi (metrik lain, fitur, aksesibilitas, atau memori memburuk)
   - [ ] melanggar aturan main (menghapus fitur, mengubah berkas terlarang, dan sebagainya)
   - [ ] memperbaiki sesuatu yang tidak berpengaruh terukur
