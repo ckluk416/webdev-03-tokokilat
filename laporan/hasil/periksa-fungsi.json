@@ -7,12 +7,12 @@
   {
     "kontrol": "hitung mundur",
     "lolos": true,
-    "bukti": "angka perseratus detik berubah 62 -> 48, jam 05"
+    "bukti": "perseratus tampil 89 lalu 51 (seharusnya 90 dan 52), detik 53, jam 04"
   },
   {
     "kontrol": "teks berjalan dan lencana kilat",
     "lolos": true,
-    "bukti": "animasi teks: berjalan; 6 lencana di DOM, 2 animasi per lencana"
+    "bukti": "animasi teks: berjalan; 3 lencana di DOM, 2 animasi per lencana"
   },
   {
     "kontrol": "tautan \"Langsung ke daftar produk\"",
@@ -52,7 +52,7 @@
   {
     "kontrol": "tombol \"Pakai voucher\" KILAT1212",
     "lolos": true,
-    "bukti": "Voucher KILAT1212 dipakai di 2.264 produk.; progres tampil di 8 frame; 23 kartu terender menampilkan harga voucher"
+    "bukti": "Voucher KILAT1212 dipakai di 2.264 produk.; progres tampil di 7 frame; 8 kartu terender menampilkan harga voucher"
   },
   {
     "kontrol": "tombol \"+ Keranjang\"",
@@ -102,7 +102,7 @@
   {
     "kontrol": "gulir daftar produk",
     "lolos": true,
-    "bukti": "kartu dirender 40 -> 80 saat digulir; tombol \"Ke atas\" tampil; 98 gambar diminta sejauh ini"
+    "bukti": "kartu dirender 16 -> 80 saat digulir; tombol \"Ke atas\" tampil; 95 gambar diminta sejauh ini"
   },
   {
     "kontrol": "tombol \"Ke atas\"",
@@ -112,7 +112,7 @@
   {
     "kontrol": "semua produk terjangkau dengan menggulir",
     "lolos": true,
-    "bukti": "3000 kartu setelah digulir sampai bawah; kaki: 5 merek, 8 kategori terkait"
+    "bukti": "3000 kartu setelah digulir sampai bawah (170.6 detik); kaki: 5 merek, 8 kategori terkait"
   },
   {
     "kontrol": "fokus keyboard terlihat",

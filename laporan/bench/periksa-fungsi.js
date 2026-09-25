@@ -178,9 +178,11 @@ const catat = (kontrol, lolos, bukti) => { hasil.push({ kontrol, lolos, bukti })
   catat('tombol "Ke atas"', (await n('scrollY')) === 0 && (await n('document.activeElement.className')) === 'merek-toko', `scrollY ${await n('scrollY')}, fokus pindah ke .${await n('document.activeElement.className')}`);
 
   // semua produk terjangkau: gulir sampai habis
-  await n(`(async () => { for (let i = 0; i < 400 && document.querySelectorAll('#kisi .kartu').length < 3000; i++) { scrollTo(0, document.documentElement.scrollHeight); await new Promise((r) => setTimeout(r, 30)); } })()`);
+  const mulaiGulir = Date.now();
+  await n(`(async () => { let terakhir = 0, diam = 0; while (document.querySelectorAll('#kisi .kartu').length < 3000 && diam < 5000) { scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }); await new Promise((r) => setTimeout(r, 50)); const n = document.querySelectorAll('#kisi .kartu').length; diam = n === terakhir ? diam + 50 : 0; terakhir = n; } })()`);
+  const lamaGulir = ((Date.now() - mulaiGulir) / 1000).toFixed(1);
   await tidur(1500);
-  catat('semua produk terjangkau dengan menggulir', (await n(`document.querySelectorAll('#kisi .kartu').length`)) === 3000, `${await n(`document.querySelectorAll('#kisi .kartu').length`)} kartu setelah digulir sampai bawah; kaki: ${await n(`document.querySelectorAll('#merek-populer li').length`)} merek, ${await n(`document.querySelectorAll('#kategori-terkait li').length`)} kategori terkait`);
+  catat('semua produk terjangkau dengan menggulir', (await n(`document.querySelectorAll('#kisi .kartu').length`)) === 3000, `${await n(`document.querySelectorAll('#kisi .kartu').length`)} kartu setelah digulir sampai bawah (${lamaGulir} detik); kaki: ${await n(`document.querySelectorAll('#merek-populer li').length`)} merek, ${await n(`document.querySelectorAll('#kategori-terkait li').length`)} kategori terkait`);
 
   // fokus terlihat: mulai dari kolom cari, Tab ke kontrol berikutnya
   await n(`document.querySelector('#kolom-cari').focus()`);
