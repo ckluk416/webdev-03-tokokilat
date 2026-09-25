@@ -7,11 +7,15 @@ const sudahTercatat = new Set();
 const impresiTertunda = [];
 let pengaturWaktuImpresi = null;
 
-// impresi dikumpulkan lalu dikirim paling sering sekali per detik; tiap panggilan SDK punya biaya tetap
+// Impresi dikumpulkan lalu dikirim paling sering sekali per 5 detik. Satu panggilan SDK di ponsel lambat bisa
+// mendekati 100 ms (hash fingerprint di SDK), jadi makin jarang dipanggil, makin sedikit long task saat menggulir.
+const JEDA_IMPRESI_MS = 5000;
 function kirimImpresi() {
   pengaturWaktuImpresi = null;
   if (impresiTertunda.length && window.Lacak) window.Lacak.kirim('impression', { produk: impresiTertunda.splice(0) });
 }
+// impresi yang belum terkirim tetap dikirim saat halaman ditinggalkan
+window.addEventListener('pagehide', kirimImpresi);
 
 // Kartu yang masuk layar (dengan margin 80 px) dimunculkan dan dicatat sebagai impresi.
 // IntersectionObserver menghitung perpotongan di luar task gulir, tanpa getBoundingClientRect per kartu.
@@ -26,8 +30,10 @@ const pengamatKartu = new IntersectionObserver((entri) => {
       sudahTercatat.add(kartu.dataset.id);
       impresiTertunda.push(kartu.dataset.id);
     }
+    // kartu tanpa lencana kilat tidak perlu diamati lagi: IntersectionObserver menghitung ulang semua target di setiap frame
+    if (!kartu.querySelector('.lencana-kilat')) pengamatKartu.unobserve(kartu);
   }
-  if (impresiTertunda.length && !pengaturWaktuImpresi) pengaturWaktuImpresi = setTimeout(kirimImpresi, 1000);
+  if (impresiTertunda.length && !pengaturWaktuImpresi) pengaturWaktuImpresi = setTimeout(kirimImpresi, JEDA_IMPRESI_MS);
 }, { rootMargin: '80px 0px' });
 
 export function amatiKartu(kartu) {
