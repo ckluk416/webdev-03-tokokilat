@@ -34,7 +34,6 @@ async function hitungHargaPromo(produk, aturan) {
   let potongan = Math.min(Math.round((dasar * aturan.persen) / 100), aturan.maksPotongan);
   if (produk.flashSale) potongan = Math.round(potongan / 2); // flash sale hanya dapat setengah
   let hargaAkhir = Math.max(dasar - potongan, 100);
-  for (let i = 0; i < 40; i++) simulasiCicilan(hargaAkhir + i); // cek kestabilan pembulatan
   const cicilan = simulasiCicilan(hargaAkhir);
   return { hargaAkhir, cicilan };
 }
@@ -56,14 +55,26 @@ async function terapkanVoucher(kode) {
   let selesai = 0;
   keadaan.hargaVoucher.clear();
 
+  // `await hitungHargaPromo(...)` sendiri tidak pernah menyerahkan kendali ke
+  // browser: fungsinya tidak punya await di dalamnya, jadi promise-nya selesai
+  // lewat microtask, dan microtask tidak memberi kesempatan browser menggambar
+  // ulang. Makanya progress bar terlihat diam di 0% lalu "meloncat" selesai,
+  // dan halaman terasa beku (scroll pun tidak jalan). Di sini kita sisipkan
+  // jeda nyata (lewat requestAnimationFrame) setiap ~16ms sekali supaya
+  // browser sempat menggambar progress bar dan tetap responsif ke scroll.
+  let terakhirJeda = performance.now();
   for (const produk of keadaan.semuaProduk) {
-    // await di setiap produk supaya browser sempat menggambar progress bar
     const hasil = await hitungHargaPromo(produk, aturan);
     if (hasil) keadaan.hargaVoucher.set(produk.id, hasil.hargaAkhir);
     selesai++;
     const persen = Math.round((selesai / total) * 100);
     isi.style.width = persen + '%';
     teks.textContent = 'Menghitung harga promo… ' + persen + '% (' + selesai + ' dari ' + total + ' produk)';
+
+    if (performance.now() - terakhirJeda > 16) {
+      await new Promise(requestAnimationFrame);
+      terakhirJeda = performance.now();
+    }
   }
 
   perbaruiHargaVoucherDiKartu();
